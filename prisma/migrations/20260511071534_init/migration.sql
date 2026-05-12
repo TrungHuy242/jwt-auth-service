@@ -19,7 +19,7 @@ CREATE TABLE `User` (
 -- CreateTable
 CREATE TABLE `RefreshToken` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `token` VARCHAR(191) NOT NULL,
+    `token` VARCHAR(512) NOT NULL,
     `userId` INTEGER NOT NULL,
     `expiresAt` DATETIME(3) NOT NULL,
     `revokedAt` DATETIME(3) NULL,
