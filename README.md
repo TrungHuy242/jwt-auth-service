@@ -1,4 +1,4 @@
-# JWT Authentication Service
+﻿# JWT Authentication Service
 
 A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT and OAuth.
 
@@ -70,44 +70,44 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 
 ```txt
 jwt-auth-service/
-│
-├── prisma/
-│   └── schema.prisma
-│
-├── src/
-│   ├── config/
-│   │   ├── prisma.js
-│   │   └── passport.js
-│   │
-│   ├── controllers/
-│   │   ├── auth.controller.js
-│   │   └── admin.controller.js
-│   │
-│   ├── middlewares/
-│   │   ├── auth.middleware.js
-│   │   ├── validate.middleware.js
-│   │   └── rateLimit.middleware.js
-│   │
-│   ├── routes/
-│   │   ├── auth.routes.js
-│   │   ├── admin.routes.js
-│   │   └── health.routes.js
-│   │
-│   ├── services/
-│   │   └── auth.service.js
-│   │
-│   ├── utils/
-│   │   └── token.js
-│   │
-│   └── server.js
-│
-├── .dockerignore
-├── Dockerfile
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-├── package.json
-└── README.md
+|
+|-- prisma/
+|   |-- schema.prisma
+|
+|-- src/
+|   |-- config/
+|   |   |-- prisma.js
+|   |   |-- passport.js
+|   |
+|   |-- controllers/
+|   |   |-- auth.controller.js
+|   |   |-- admin.controller.js
+|   |
+|   |-- middlewares/
+|   |   |-- auth.middleware.js
+|   |   |-- validate.middleware.js
+|   |   |-- rateLimit.middleware.js
+|   |
+|   |-- routes/
+|   |   |-- auth.routes.js
+|   |   |-- admin.routes.js
+|   |   |-- health.routes.js
+|   |
+|   |-- services/
+|   |   |-- auth.service.js
+|   |
+|   |-- utils/
+|   |   |-- token.js
+|   |
+|   |-- server.js
+|
+|-- .dockerignore
+|-- Dockerfile
+|-- docker-compose.yml
+|-- .env.example
+|-- .gitignore
+|-- package.json
+|-- README.md
 ```
 
 ---
