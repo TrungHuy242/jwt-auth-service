@@ -15,57 +15,43 @@ const healthRoutes = require("./routes/health.routes");
 const app = express();
 
 app.use(helmet());
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || process.env.CLIENT_URL || "").split(",").map(o => o.trim()).filter(Boolean);
 app.use(
     cors({
-      origin: "*",
+      origin: allowedOrigins.length > 0 ? allowedOrigins : false,
       methods: ["GET", "POST", "PATCH", "PUT", "DELETE"],
       allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
     })
 );
 app.use(express.json());
 
 app.use(
     session({
-      secret: process.env.SESSION_SECRET || "temporary_session_secret",
+      secret: process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
     })
-  );
+);
   
-  app.use(passport.initialize());
-  app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
 
 const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 phút
-    max: 200, // tối đa 200 request / 15 phút / IP
+    windowMs: 15 * 60 * 1000,
+    max: 200,
     message: {
       message: "Bạn gửi quá nhiều request. Vui lòng thử lại sau.",
     },
   });
-  
+
 app.use(globalLimiter);
 
 app.get("/", (req, res) => {
     res.json({
         message: "JWT Auth Service is running",
-    })
-});
-
-
-app.get("/api/test-db", async (req, res) => {
-    try {
-        const users = await prisma.user.findMany();
-
-        res.json({
-            message: "Database connected successfully",
-            users,
-        });
-    } catch(error) {
-        res.status(500).json({
-            message : "Database connection failed",
-            error: error.message,
-        });
-    }
+    });
 });
 
 app.use("/api/auth", authRoutes);
@@ -74,6 +60,24 @@ app.use("/api/health", healthRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+process.on("SIGTERM", async () => {
+    console.log("SIGTERM received. Shutting down gracefully...");
+    server.close(async () => {
+        await prisma.$disconnect();
+        console.log("Server closed.");
+        process.exit(0);
+    });
+});
+
+process.on("SIGINT", async () => {
+    console.log("SIGINT received. Shutting down gracefully...");
+    server.close(async () => {
+        await prisma.$disconnect();
+        console.log("Server closed.");
+        process.exit(0);
+    });
 });

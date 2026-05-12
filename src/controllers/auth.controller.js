@@ -282,9 +282,9 @@ const changePassword = async (req, res) => {
             });
         }
 
-        if(newPassword.length < 6) {
+        if(newPassword.length < 8) {
             return res.status(400).json({
-                message: "Mật khẩu mới phải có ít nhất 6 ký tự",
+                message: "Mật khẩu mới phải có ít nhất 8 ký tự",
             });
         }
 
@@ -293,18 +293,6 @@ const changePassword = async (req, res) => {
                 id: req.user.id,
             },
         });
-
-        if (!user) {
-            return res.status(404).json({
-                message: "Người dùng không tồn tại",
-            });
-        }
-
-        if(!user) {
-            return res.status(404).json({
-                message: "Người dùng không tồn",
-            });
-        }
 
         if (!user) {
             return res.status(404).json({
@@ -332,14 +320,24 @@ const changePassword = async (req, res) => {
         await prisma.user.update({
             where: {
                 id: user.id,
-            }, 
+            },
             data: {
                 password: hashedPassword,
             },
         });
-        
+
+        await prisma.refreshToken.updateMany({
+            where: {
+                userId: user.id,
+                revokedAt: null,
+            },
+            data: {
+                revokedAt: new Date(),
+            },
+        });
+
         return res.status(200).json({
-            message: "Đổi mật khẩu thành công. vui lòng đăng nhập lại."
+            message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
         });
     } catch (error) {
         return res.status(500).json({
@@ -418,9 +416,9 @@ const resetPassword = async (req, res) => {
         });
       }
   
-      if (newPassword.length < 6) {
+      if (newPassword.length < 8) {
         return res.status(400).json({
-          message: "Mật khẩu mới phải có ít nhất 6 ký tự",
+          message: "Mật khẩu mới phải có ít nhất 8 ký tự",
         });
       }
   
@@ -478,19 +476,17 @@ const resetPassword = async (req, res) => {
 const googleCallback = async (req, res) => {
     try {
       const user = req.user;
-  
+
       if (!user) {
-        return res.status(401).json({
-          message: "Đăng nhập Google thất bại",
-        });
+        return res.redirect(`${process.env.CLIENT_URL || "http://localhost:3000"}/auth/error?message=google_login_failed`);
       }
-  
+
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
-  
+
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
-  
+
       await prisma.refreshToken.create({
         data: {
           token: refreshToken,
@@ -498,26 +494,12 @@ const googleCallback = async (req, res) => {
           expiresAt,
         },
       });
-  
-      return res.status(200).json({
-        message: "Đăng nhập Google thành công",
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          provider: user.provider,
-          avatar: user.avatar,
-          isVerified: user.isVerified,
-        },
-      });
+
+      return res.redirect(
+        `${process.env.CLIENT_URL || "http://localhost:3000"}/auth/success?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      );
     } catch (error) {
-      return res.status(500).json({
-        message: "Lỗi server khi đăng nhập Google",
-        error: error.message,
-      });
+      return res.redirect(`${process.env.CLIENT_URL || "http://localhost:3000"}/auth/error?message=google_login_failed`);
     }
 };
 
@@ -525,19 +507,17 @@ const googleCallback = async (req, res) => {
 const facebookCallback = async (req, res) => {
     try {
       const user = req.user;
-  
+
       if (!user) {
-        return res.status(401).json({
-          message: "Đăng nhập Facebook thất bại",
-        });
+        return res.redirect(`${process.env.CLIENT_URL || "http://localhost:3000"}/auth/error?message=facebook_login_failed`);
       }
-  
+
       const accessToken = generateAccessToken(user);
       const refreshToken = generateRefreshToken(user);
-  
+
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
-  
+
       await prisma.refreshToken.create({
         data: {
           token: refreshToken,
@@ -545,28 +525,14 @@ const facebookCallback = async (req, res) => {
           expiresAt,
         },
       });
-  
-      return res.status(200).json({
-        message: "Đăng nhập Facebook thành công",
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          provider: user.provider,
-          avatar: user.avatar,
-          isVerified: user.isVerified,
-        },
-      });
+
+      return res.redirect(
+        `${process.env.CLIENT_URL || "http://localhost:3000"}/auth/success?accessToken=${accessToken}&refreshToken=${refreshToken}`
+      );
     } catch (error) {
-      return res.status(500).json({
-        message: "Lỗi server khi đăng nhập Facebook",
-        error: error.message,
-      });
+      return res.redirect(`${process.env.CLIENT_URL || "http://localhost:3000"}/auth/error?message=facebook_login_failed`);
     }
-  };
+};
 
 module.exports = {
     register,
