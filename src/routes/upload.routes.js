@@ -3,6 +3,7 @@ const express = require("express");
 const {
   uploadSingleFile,
   uploadMultipleFiles,
+  getUploadedFiles,
 } = require("../controllers/upload.controller");
 
 const { isAuthenticated } = require("../middlewares/auth.middleware");
@@ -13,6 +14,8 @@ const {
 } = require("../middlewares/upload.middleware");
 
 const router = express.Router();
+
+router.get("/", isAuthenticated, getUploadedFiles);
 
 router.post("/single", isAuthenticated, uploadSingle, uploadSingleFile);
 router.post("/multiple", isAuthenticated, uploadMultiple, uploadMultipleFiles);

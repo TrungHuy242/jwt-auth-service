@@ -130,7 +130,116 @@ const uploadMultipleFiles = async (req, res) => {
   }
 };
 
+const getUploadedFiles = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search = "",
+      folder,
+      type,
+    } = req.query;
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (isNaN(pageNumber) || pageNumber < 1) {
+      return res.status(400).json({
+        message: "Page không hợp lệ",
+      });
+    }
+
+    if (isNaN(limitNumber) || limitNumber < 1) {
+      return res.status(400).json({
+        message: "Limit không hợp lệ",
+      });
+    }
+
+    const allowedTypes = ["IMAGE", "DOCUMENT", "VIDEO", "AUDIO", "OTHER"];
+
+    if (type && !allowedTypes.includes(type)) {
+      return res.status(400).json({
+        message: "Type không hợp lệ. Chỉ chấp nhận IMAGE, DOCUMENT, VIDEO, AUDIO hoặc OTHER",
+      });
+    }
+
+    const where = {
+      AND: [
+        req.user.role === "ADMIN" ? {} : { uploadedById: req.user.id },
+        search
+          ? {
+              OR: [
+                {
+                  originalName: {
+                    contains: search,
+                  },
+                },
+                {
+                  fileName: {
+                    contains: search,
+                  },
+                },
+              ],
+            }
+          : {},
+        folder ? { folder } : {},
+        type ? { type } : {},
+      ],
+    };
+
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const [files, totalFiles] = await Promise.all([
+      prisma.uploadedFile.findMany({
+        where,
+        skip,
+        take: limitNumber,
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          uploadedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+      }),
+      prisma.uploadedFile.count({
+        where,
+      }),
+    ]);
+
+    const totalPages = Math.ceil(totalFiles / limitNumber);
+
+    return res.status(200).json({
+      message: "Lấy danh sách file thành công",
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        totalFiles,
+        totalPages,
+      },
+      filters: {
+        search,
+        folder: folder || null,
+        type: type || null,
+      },
+      files,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi server khi lấy danh sách file",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadSingleFile,
   uploadMultipleFiles,
+  getUploadedFiles,
 };
