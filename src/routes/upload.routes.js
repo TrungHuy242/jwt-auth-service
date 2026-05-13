@@ -4,6 +4,7 @@ const {
   uploadSingleFile,
   uploadMultipleFiles,
   getUploadedFiles,
+  getUploadedFileById,
 } = require("../controllers/upload.controller");
 
 const { isAuthenticated } = require("../middlewares/auth.middleware");
@@ -16,6 +17,7 @@ const {
 const router = express.Router();
 
 router.get("/", isAuthenticated, getUploadedFiles);
+router.get("/:id", isAuthenticated, getUploadedFileById);
 
 router.post("/single", isAuthenticated, uploadSingle, uploadSingleFile);
 router.post("/multiple", isAuthenticated, uploadMultiple, uploadMultipleFiles);

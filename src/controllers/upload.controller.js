@@ -238,8 +238,61 @@ const getUploadedFiles = async (req, res) => {
   }
 };
 
+const getUploadedFileById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const fileId = Number(id);
+
+    if (isNaN(fileId)) {
+      return res.status(400).json({
+        message: "ID file không hợp lệ",
+      });
+    }
+
+    const file = await prisma.uploadedFile.findUnique({
+      where: {
+        id: fileId,
+      },
+      include: {
+        uploadedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        message: "Không tìm thấy file",
+      });
+    }
+
+    if (req.user.role !== "ADMIN" && file.uploadedById !== req.user.id) {
+      return res.status(403).json({
+        message: "Bạn không có quyền xem file này",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Lấy chi tiết file thành công",
+      file,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi server khi lấy chi tiết file",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadSingleFile,
   uploadMultipleFiles,
   getUploadedFiles,
+  getUploadedFileById,
 };
