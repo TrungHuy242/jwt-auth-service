@@ -14,6 +14,7 @@ const adminRoutes = require('./routes/admin.routes');
 const healthRoutes = require("./routes/health.routes");
 const userRoutes = require("./routes/user.routes");
 const uploadRoutes = require("./routes/upload.routes");
+const emailRoutes = require("./routes/email.routes");
 
 const app = express();
 
@@ -63,6 +64,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/health", healthRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/emails", emailRoutes);
 
 const PORT = process.env.PORT || 5000;
 
