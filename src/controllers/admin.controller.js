@@ -3,6 +3,11 @@ const { sendEmail } = require("../services/email.service");
 const { accountStatusTemplate } = require("../templates/email.templates");
 const { createNotification } = require("../services/notification.service");
 
+const {
+  createActivityLog,
+  getRequestInfo,
+} = require("../services/activityLog.service");
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 100;
@@ -256,6 +261,15 @@ const updateUserRole = async (req, res) => {
             link: "/profile",
         });
 
+        const requestInfo = getRequestInfo(req);
+
+        await createActivityLog({
+            userId: req.user.id,
+            action: "UPDATE_USER_ROLE",
+            ...requestInfo,
+            details: `Admin ${req.user.email} changed role of user ${updatedUser.email} to ${role}`,
+        });
+
         return res.status(200).json({
             message: "Cập nhật role người dùng thành công. Người dùng cần đăng nhập lại.",
             user: updatedUser,
@@ -378,6 +392,15 @@ const updateUserStatus = async (req, res) => {
                     : "Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập và sử dụng hệ thống bình thường.",
             type: "ACCOUNT",
             link: "/profile",
+        });
+
+        const requestInfo = getRequestInfo(req);
+
+        await createActivityLog({
+            userId: req.user.id,
+            action: "UPDATE_USER_STATUS",
+            ...requestInfo,
+            details: `Admin ${req.user.email} changed status of user ${updatedUser.email} to ${status}`,
         });
 
         return res.status(200).json({

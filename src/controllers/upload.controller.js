@@ -2,6 +2,11 @@ const fs = require("fs");
 const path = require("path");
 const prisma = require("../config/prisma");
 
+const {
+  createActivityLog,
+  getRequestInfo,
+} = require("../services/activityLog.service");
+
 const getFileType = (mimeType) => {
   if (mimeType.startsWith("image/")) {
     return "IMAGE";
@@ -62,6 +67,15 @@ const uploadSingleFile = async (req, res) => {
       },
     });
 
+    const requestInfo = getRequestInfo(req);
+
+    await createActivityLog({
+      userId: req.user.id,
+      action: "UPLOAD_FILE",
+      ...requestInfo,
+      details: `Uploaded file: ${uploadedFile.originalName}`,
+    });
+
     return res.status(201).json({
       message: "Upload file thành công",
       file: uploadedFile,
@@ -117,6 +131,15 @@ const uploadMultipleFiles = async (req, res) => {
       orderBy: {
         createdAt: "desc",
       },
+    });
+
+    const requestInfo = getRequestInfo(req);
+
+    await createActivityLog({
+      userId: req.user.id,
+      action: "UPLOAD_MULTIPLE_FILES",
+      ...requestInfo,
+      details: `Uploaded ${uploadedFiles.length} files`,
     });
 
     return res.status(201).json({
@@ -332,6 +355,15 @@ const deleteUploadedFile = async (req, res) => {
       where: {
         id: fileId,
       },
+    });
+
+    const requestInfo = getRequestInfo(req);
+
+    await createActivityLog({
+      userId: req.user.id,
+      action: "DELETE_FILE",
+      ...requestInfo,
+      details: `Deleted file: ${file.originalName}`,
     });
 
     return res.status(200).json({

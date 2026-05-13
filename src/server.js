@@ -17,6 +17,7 @@ const uploadRoutes = require("./routes/upload.routes");
 const emailRoutes = require("./routes/email.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const adminNotificationRoutes = require("./routes/adminNotification.routes");
+const activityLogRoutes = require("./routes/activityLog.routes");
 
 const app = express();
 
@@ -69,6 +70,7 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/emails", emailRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin/notifications", adminNotificationRoutes);
+app.use("/api/admin/activity-logs", activityLogRoutes);
 
 const PORT = process.env.PORT || 5000;
 

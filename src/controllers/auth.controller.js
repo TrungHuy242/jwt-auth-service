@@ -10,6 +10,11 @@ const {
   securityAlertTemplate,
 } = require("../templates/email.templates");
 
+const {
+  createActivityLog,
+  getRequestInfo,
+} = require("../services/activityLog.service");
+
 const register = async (req, res) => {
     try{
         const { name, email, password} = req.body;
@@ -168,6 +173,15 @@ const login = async (req, res) => {
             },
         });
 
+        const requestInfo = getRequestInfo(req);
+
+        await createActivityLog({
+            userId: user.id,
+            action: "LOGIN",
+            ...requestInfo,
+            details: "User logged in successfully",
+        });
+
         // 8. Trả về kết quả
         return res.status(200).json({
             message: "Đăng nhập thành công",
@@ -309,10 +323,19 @@ const logout = async (req, res) => {
         await prisma.refreshToken.update({
             where: {
                 token: refreshToken,
-            }, 
+            },
             data: {
                 revokedAt: new Date(),
             },
+        });
+
+        const requestInfo = getRequestInfo(req);
+
+        await createActivityLog({
+            userId: storedToken.userId,
+            action: "LOGOUT",
+            ...requestInfo,
+            details: "User logged out successfully",
         });
 
         return res.status(200).json({
@@ -399,6 +422,15 @@ const changePassword = async (req, res) => {
                 name: user.name,
                 action: "Đổi mật khẩu tài khoản",
             }),
+        });
+
+        const requestInfo = getRequestInfo(req);
+
+        await createActivityLog({
+            userId: user.id,
+            action: "CHANGE_PASSWORD",
+            ...requestInfo,
+            details: "User changed password successfully",
         });
 
         return res.status(200).json({
@@ -548,6 +580,15 @@ const resetPassword = async (req, res) => {
           name: user.name,
           action: "Đặt lại mật khẩu tài khoản",
         }),
+      });
+
+      const requestInfo = getRequestInfo(req);
+
+      await createActivityLog({
+        userId: user.id,
+        action: "RESET_PASSWORD",
+        ...requestInfo,
+        details: "User reset password successfully",
       });
 
       return res.status(200).json({

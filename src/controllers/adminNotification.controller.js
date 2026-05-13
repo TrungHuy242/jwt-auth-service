@@ -4,6 +4,11 @@ const {
   createNotificationsForUsers,
 } = require("../services/notification.service");
 
+const {
+  createActivityLog,
+  getRequestInfo,
+} = require("../services/activityLog.service");
+
 const allowedTypes = [
   "SYSTEM",
   "SECURITY",
@@ -63,6 +68,15 @@ const sendNotificationToUser = async (req, res) => {
       message,
       type,
       link,
+    });
+
+    const requestInfo = getRequestInfo(req);
+
+    await createActivityLog({
+      userId: req.user.id,
+      action: "SEND_NOTIFICATION_TO_USER",
+      ...requestInfo,
+      details: `Admin ${req.user.email} sent notification to user ${user.email}`,
     });
 
     return res.status(201).json({
@@ -130,6 +144,17 @@ const broadcastNotification = async (req, res) => {
       message,
       type,
       link,
+    });
+
+    const requestInfo = getRequestInfo(req);
+
+    await createActivityLog({
+      userId: req.user.id,
+      action: "BROADCAST_NOTIFICATION",
+      ...requestInfo,
+      details: `Admin ${req.user.email} broadcasted notification to ${result.count} users${
+        role ? ` with role ${role}` : ""
+      }`,
     });
 
     return res.status(201).json({

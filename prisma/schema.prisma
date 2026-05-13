@@ -35,6 +35,7 @@ model User {
   refreshTokens RefreshToken[]
   uploadedFiles UploadedFile[]
   notifications Notification[]
+  activityLogs ActivityLog[]
 }
 
 model RefreshToken {
@@ -109,4 +110,18 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model ActivityLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String
+  method    String?
+  path      String?
+  ip        String?
+  userAgent String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }

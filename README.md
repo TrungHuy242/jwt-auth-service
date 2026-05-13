@@ -1,4 +1,4 @@
-# JWT Authentication Service
+﻿# JWT Authentication Service
 
 A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT and OAuth.
 
@@ -85,6 +85,17 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - Admin gui thong bao hang loat
 - Tu dong tao thong bao khi doi role user
 - Tu dong tao thong bao khi khoa / mo khoa tai khoan
+- Ghi lai lich su hoat dong nguoi dung
+- Ghi log dang nhap / dang xuat
+- Ghi log doi mat khau / reset mat khau
+- Ghi log upload file / xoa file
+- Ghi log admin doi role nguoi dung
+- Ghi log admin khoa / mo khoa tai khoan
+- Ghi log admin gui thong bao cho user
+- Ghi log admin gui thong bao hang loat
+- Admin xem danh sach activity log
+- Admin tim kiem, loc, phan trang activity log
+- Admin xem chi tiet activity log
 
 ---
 
@@ -103,6 +114,7 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 | Rate Limiting  | Express Rate Limit  |
 | Email          | Nodemailer          |
 | Notification   | In-app Notifications |
+| Activity Log   | Admin Audit Trail    |
 | Environment    | Dotenv              |
 | Container      | Docker + Compose    |
 
@@ -397,18 +409,20 @@ Server runs at: **http://localhost:5000**
 | Method | Endpoint                                   | M? t?                                      |
 |--------|--------------------------------------------|------------------------------------------|
 | POST   | `/api/admin/notifications/user/:id`        | Admin g?i th?ng b?o cho m?t user          |
-| POST   | `/api/admin/notifications/broadcast`       | Admin g?i th?ng b?o h?ng lo?t            |
+| POST   | `/api/admin/notifications/broadcast`       | Admin gui thong bao hang loat            |
+
+---
+
+### Activity Log API
+
+| Method | Endpoint                         | Mo ta                                |
+|--------|----------------------------------|--------------------------------------|
+| GET    | `/api/admin/activity-logs`        | Admin xem danh sach activity log     |
+| GET    | `/api/admin/activity-logs/:id`   | Admin xem chi tiet activity log      |
 
 ---
 
 ## Request Examples
-
-### Health Check
-
-```http
-GET /api/health
-```
-
 ### Register
 
 ```http
@@ -722,6 +736,109 @@ ORDER: don h?ng
 APPOINTMENT: l?ch h?n
 COURSE: kh?a h?c/b?i h?c
 OTHER: lo?i kh?c
+```
+
+### Get Activity Logs
+
+```http
+GET /api/admin/activity-logs?page=1&limit=10&search=LOGIN&userId=1&action=LOGIN&method=POST
+Authorization: Bearer admin_access_token
+```
+
+Query params:
+
+```txt
+page=1
+limit=10
+search=LOGIN
+userId=1
+action=LOGIN
+method=POST
+```
+
+Response:
+
+```json
+{
+  "message": "Lay danh sach activity log thanh cong",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalLogs": 20,
+    "totalPages": 2
+  },
+  "filters": {
+    "search": "LOGIN",
+    "userId": "1",
+    "action": "LOGIN",
+    "method": "POST"
+  },
+  "logs": []
+}
+```
+
+### Get Activity Log By ID
+
+```http
+GET /api/admin/activity-logs/:id
+Authorization: Bearer admin_access_token
+```
+
+Response:
+
+```json
+{
+  "message": "Lay chi tiet activity log thanh cong",
+  "log": {
+    "id": 1,
+    "userId": 1,
+    "action": "LOGIN",
+    "method": "POST",
+    "path": "/api/auth/login",
+    "ip": "::1",
+    "userAgent": "PostmanRuntime/...",
+    "details": "User logged in successfully",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "user": {
+      "id": 1,
+      "name": "Kim Ngan",
+      "email": "ngan@gmail.com",
+      "role": "ADMIN",
+      "provider": "local",
+      "status": "ACTIVE"
+    }
+  }
+}
+```
+
+## Activity Log Actions
+
+```txt
+LOGIN
+LOGOUT
+CHANGE_PASSWORD
+RESET_PASSWORD
+UPLOAD_FILE
+UPLOAD_MULTIPLE_FILES
+DELETE_FILE
+UPDATE_USER_ROLE
+UPDATE_USER_STATUS
+SEND_NOTIFICATION_TO_USER
+BROADCAST_NOTIFICATION
+
+Y nghia:
+
+LOGIN: user dang nhap thanh cong
+LOGOUT: user dang xuat thanh cong
+CHANGE_PASSWORD: user doi mat khau
+RESET_PASSWORD: user dat lai mat khau
+UPLOAD_FILE: user upload 1 file
+UPLOAD_MULTIPLE_FILES: user upload nhieu file
+DELETE_FILE: user xoa file
+UPDATE_USER_ROLE: admin doi role user
+UPDATE_USER_STATUS: admin khoa / mo khoa user
+SEND_NOTIFICATION_TO_USER: admin gui thong bao cho 1 user
+BROADCAST_NOTIFICATION: admin gui thong bao hang loat
 ```
 
 ---
