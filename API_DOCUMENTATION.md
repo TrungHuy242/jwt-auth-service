@@ -31,6 +31,11 @@
   - [GET /api/admin/users/:id](#16-get-apiadminusersid)
   - [PATCH /api/admin/users/:id/role](#17-patch-apiadminusersidrole)
   - [PATCH /api/admin/users/:id/status](#18-patch-apiadminusersidstatus)
+- [Email Service](#email-service)
+  - [POST /api/emails/test](#31-post-apiemailstest)
+- [Email Verification](#email-verification)
+  - [GET /api/auth/verify-email](#32-get-apiauthverify-email)
+  - [POST /api/auth/resend-verification-email](#33-post-apiauthresend-verification-email)
 - [User Profile](#user-profile)
   - [GET /api/users/me](#19-get-apiusersme)
   - [PATCH /api/users/me](#20-patch-apiusersme)
@@ -83,7 +88,7 @@ Register a new user account.
 
 ```json
 {
-  "message": "Đăng ký tài khoản thành công",
+  "message": "Dang ky tai khoan thanh cong. Vui long kiem tra email de xac thuc tai khoan.",
   "user": {
     "id": 1,
     "name": "Trung Huy",
@@ -95,6 +100,8 @@ Register a new user account.
   }
 }
 ```
+
+> **Note:** A verification email is sent automatically after registration.
 
 **Error Responses:**
 
@@ -157,13 +164,15 @@ Authenticate a user with email and password.
 
 **Error Responses:**
 
-| Status | Message                                           |
-|--------|---------------------------------------------------|
-| 400    | Vui lòng nhập email và password                  |
-| 400    | Email hoặc mật khẩu không đúng                  |
-| 400    | Tài khoản này đăng nhập bằng Google/Facebook   |
-| 429    | Too many requests                                 |
-| 500    | Lỗi server khi đăng nhập                        |
+| Status | Message                                                       |
+|--------|---------------------------------------------------------------|
+| 400    | Vui long nhap email va password                              |
+| 400    | Email hoac mat khau khong dung                               |
+| 403    | Tai khoan chua xac thuc email. Vui long kiem tra email de xac thuc tai khoan. |
+| 403    | Tai khoan cua ban da bi khoa. Vui long lien he quan tri vien. |
+| 400    | Tai khoan nay dang nhap bang Google/Facebook                 |
+| 429    | Too many requests                                            |
+| 500    | Lỗi server khi dang nhap                                   |
 
 ---
 
@@ -1328,6 +1337,176 @@ ADMIN xóa được mọi file.
 
 ---
 
+## Email Service APIs
+
+### 31. POST `/api/emails/test`
+
+Send a test email to verify email configuration.
+
+**Authentication:** Required (Bearer Token with `ADMIN` role)
+
+**Headers:**
+
+```
+Authorization: Bearer <admin_access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type   | Required | Description          |
+|-------|--------|----------|----------------------|
+| `to`  | string | Yes      | Recipient email     |
+
+**Example Request:**
+
+```json
+{
+  "to": "receiver@gmail.com"
+}
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Gui email test thanh cong",
+  "messageId": "<message_id>"
+}
+```
+
+> **Note:** Only ADMIN role can send test emails.
+
+**Error Responses:**
+
+| Status | Message                                   |
+|--------|-------------------------------------------|
+| 400    | Vui long nhap email nguoi nhan         |
+| 401    | No token provided / Token expired / Invalid |
+| 403    | Ban khong co quyen gui email test        |
+| 500    | Lỗi server khi gui email               |
+
+---
+
+## Email Verification APIs
+
+### 32. GET `/api/auth/verify-email`
+
+Verify user's email address using the token sent to their email.
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Description                    |
+|-----------|--------|----------|--------------------------------|
+| `token`   | string | Yes      | Verification token from email  |
+
+**Example Request:**
+
+```
+GET /api/auth/verify-email?token=abc123def456
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Xac thuc email thanh cong. Ban co the dang nhap."
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                   |
+|--------|-------------------------------------------|
+| 400    | Thieu token xac thuc email               |
+| 400    | Token xac thuc khong hop le hoac da het han |
+| 500    | Lỗi server khi xac thuc email          |
+
+---
+
+### 33. POST `/api/auth/resend-verification-email`
+
+Resend verification email to user's email address.
+
+**Request Body:**
+
+| Field  | Type   | Required | Description          |
+|--------|--------|----------|----------------------|
+| `email`| string | Yes      | User's email        |
+
+**Example Request:**
+
+```json
+{
+  "email": "user@gmail.com"
+}
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Neu email ton tai va chua xac thuc, he thong se gui lai email xac thuc"
+}
+```
+
+> **Note:** For security, the response is the same regardless of whether the email exists.
+
+**Error Responses:**
+
+| Status | Message                                                      |
+|--------|--------------------------------------------------------------|
+| 400    | Vui long nhap email                                          |
+| 400    | Tai khoan nay dang nhap bang Google/Facebook, khong can xac thuc email theo cach nay |
+| 400    | Tai khoan nay da duoc xac thuc email                          |
+| 403    | Tai khoan cua ban da bi khoa                                 |
+| 500    | Lỗi server khi gui lai email xac thuc                       |
+
+---
+
+## Reset Password Email Flow
+
+### Forgot Password
+
+**Request Body:**
+
+| Field  | Type   | Required | Description      |
+|--------|--------|----------|------------------|
+| `email`| string | Yes      | Registered email |
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Neu email ton tai, he thong se gui huong dan dat lai mat khau"
+}
+```
+
+> **Note:** The system sends a password reset link via email. The reset token is NOT returned directly in production mode.
+
+---
+
+### Reset Password
+
+**Request Body:**
+
+| Field         | Type   | Required | Description                    |
+|---------------|--------|----------|--------------------------------|
+| `resetToken`  | string | Yes      | Token from email link          |
+| `newPassword` | string | Yes      | New password (min 6 chars)   |
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Dat lai mat khau thanh cong. Vui long dang nhap lai."
+}
+```
+
+> **Note:** After successful password reset, the system sends a security alert email to notify the user.
+
+---
+
 ## Response Formats
 
 ### Success Response
@@ -1419,6 +1598,8 @@ ADMIN xóa được mọi file.
 | `lastLoginAt`         | DateTime?| Last login timestamp                      |
 | `resetPasswordToken` | string? | Active password reset token               |
 | `resetPasswordExpires`| DateTime?| Reset token expiration time              |
+| `verifyEmailToken`  | string? | Email verification token                   |
+| `verifyEmailExpires` | DateTime?| Email verification token expiration        |
 | `createdAt`          | DateTime| Account creation timestamp                 |
 | `updatedAt`          | DateTime| Last update timestamp                      |
 
@@ -1455,19 +1636,27 @@ ADMIN xóa được mọi file.
 
 ## Environment Variables
 
-| Variable            | Description                                    | Default                      |
-|---------------------|------------------------------------------------|------------------------------|
-| `PORT`              | Server port                                    | 5000                         |
-| `DATABASE_URL`      | MySQL database connection string               | -                            |
-| `JWT_ACCESS_SECRET` | Secret key for access token signing            | -                            |
-| `JWT_REFRESH_SECRET`| Secret key for refresh token signing           | -                            |
+| Variable              | Description                                    | Default                      |
+|-----------------------|------------------------------------------------|------------------------------|
+| `PORT`                | Server port                                    | 5000                         |
+| `DATABASE_URL`        | MySQL database connection string               | -                            |
+| `JWT_ACCESS_SECRET`   | Secret key for access token signing            | -                            |
+| `JWT_REFRESH_SECRET`  | Secret key for refresh token signing           | -                            |
 | `JWT_ACCESS_EXPIRES_IN` | Access token expiration time              | 15m                          |
 | `JWT_REFRESH_EXPIRES_IN` | Refresh token expiration time            | 7d                           |
-| `SESSION_SECRET`    | Express session secret                         | `temporary_session_secret`   |
-| `GOOGLE_CLIENT_ID`  | Google OAuth client ID                         | -                            |
-| `GOOGLE_CLIENT_SECRET`| Google OAuth client secret                   | -                            |
-| `FACEBOOK_CLIENT_ID` | Facebook OAuth app ID                         | -                            |
-| `FACEBOOK_CLIENT_SECRET` | Facebook OAuth app secret                  | -                            |
+| `SESSION_SECRET`      | Express session secret                         | `temporary_session_secret`   |
+| `CLIENT_URL`          | Frontend URL for OAuth and email callbacks     | -                            |
+| `GOOGLE_CLIENT_ID`    | Google OAuth client ID                         | -                            |
+| `GOOGLE_CLIENT_SECRET`| Google OAuth client secret                     | -                            |
+| `FACEBOOK_APP_ID`     | Facebook OAuth app ID                          | -                            |
+| `FACEBOOK_APP_SECRET` | Facebook OAuth app secret                      | -                            |
+| `EMAIL_HOST`          | SMTP server host                               | smtp.gmail.com               |
+| `EMAIL_PORT`          | SMTP server port                               | 587                          |
+| `EMAIL_SECURE`        | Use TLS/SSL                                   | false                        |
+| `EMAIL_USER`          | SMTP username (Gmail address)                 | -                            |
+| `EMAIL_PASS`          | SMTP password (Gmail App Password)             | -                            |
+| `EMAIL_FROM_NAME`     | Email sender name                              | JWT Auth Service              |
+| `EMAIL_FROM_ADDRESS`  | Email sender address                           | -                            |
 
 ---
 
@@ -1482,6 +1671,24 @@ ADMIN xóa được mọi file.
 - **Token Revocation:** Refresh tokens can be revoked on logout
 - **Password Reset:** Token-based reset with 15-minute expiration
 - **OAuth Support:** Google & Facebook OAuth 2.0
+- **Email Verification:** Required for local accounts before login
+- **Security Alerts:** Email notifications on password changes and account status changes
+
+---
+
+## Email Templates
+
+The system includes the following HTML email templates:
+
+| Template                    | Purpose                                    |
+|-----------------------------|-------------------------------------------|
+| `testEmailTemplate`        | Test email connectivity                   |
+| `resetPasswordTemplate`     | Password reset link                       |
+| `verifyEmailTemplate`      | Email verification link                   |
+| `securityAlertTemplate`     | Password change / account status alerts   |
+| `accountStatusTemplate`     | Account lock / unlock notifications        |
+
+All templates use a consistent base layout with JWT Auth Service branding.
 
 ---
 

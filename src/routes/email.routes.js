@@ -1,5 +1,6 @@
 const express = require("express");
 const { sendEmail } = require("../services/email.service");
+const { testEmailTemplate } = require("../templates/email.templates");
 const { isAuthenticated, allowRoles } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -22,11 +23,7 @@ router.post(
         to,
         subject: "Test Email - JWT Auth Service",
         text: "Đây là email test từ JWT Auth Service.",
-        html: `
-          <h2>Test Email</h2>
-          <p>Đây là email test từ <b>JWT Auth Service</b>.</p>
-          <p>Nếu bạn nhận được email này, cấu hình Nodemailer đã hoạt động.</p>
-        `,
+        html: testEmailTemplate(),
       });
 
       return res.status(200).json({

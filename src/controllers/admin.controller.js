@@ -1,4 +1,6 @@
 const prisma = require('../config/prisma');
+const { sendEmail } = require("../services/email.service");
+const { accountStatusTemplate } = require("../templates/email.templates");
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -338,6 +340,22 @@ const updateUserStatus = async (req, res) => {
                 },
             });
         }
+
+        await sendEmail({
+            to: updatedUser.email,
+            subject:
+                status === "BLOCKED"
+                    ? "Thông báo khóa tài khoản - JWT Auth Service"
+                    : "Thông báo mở khóa tài khoản - JWT Auth Service",
+            text:
+                status === "BLOCKED"
+                    ? "Tài khoản của bạn đã bị khóa."
+                    : "Tài khoản của bạn đã được mở khóa.",
+            html: accountStatusTemplate({
+                name: updatedUser.name,
+                status,
+            }),
+        });
 
         return res.status(200).json({
             message:

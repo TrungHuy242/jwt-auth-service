@@ -1,5 +1,5 @@
 const express = require('express');
-const { register , login , getMe , logout , refreshToken , changePassword, forgotPassword, resetPassword, googleCallback, facebookCallback } = require('../controllers/auth.controller');
+const { register , login , getMe , logout , refreshToken , changePassword, forgotPassword, resetPassword, verifyEmail, resendVerificationEmail, googleCallback, facebookCallback } = require('../controllers/auth.controller');
 const { isAuthenticated } = require('../middlewares/auth.middleware');
 const {
     validateRegister,
@@ -18,6 +18,8 @@ const router = express.Router();
 
 router.post("/register", authLimiter, validateRegister, register);
 router.post("/login", authLimiter, validateLogin, login);
+router.get("/verify-email", verifyEmail);
+router.post("/resend-verification-email", resendVerificationEmail);
 
 router.get(
     "/google",

@@ -3,6 +3,12 @@ const prisma = require('../config/prisma');
 const { generateAccessToken, generateRefreshToken } = require('../utils/token');
 const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
+const { sendEmail } = require("../services/email.service");
+const {
+  resetPasswordTemplate,
+  verifyEmailTemplate,
+  securityAlertTemplate,
+} = require("../templates/email.templates");
 
 const register = async (req, res) => {
     try{
@@ -30,7 +36,13 @@ const register = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // 4. Tạo user mới
+        // 4. Tạo verify token
+        const verifyToken = crypto.randomBytes(32).toString("hex");
+
+        const verifyEmailExpires = new Date();
+        verifyEmailExpires.setHours(verifyEmailExpires.getHours() + 24);
+
+        // 5. Tạo user mới
         const newUser = await prisma.user.create({
             data: {
                 name,
@@ -38,6 +50,8 @@ const register = async (req, res) => {
                 password: hashedPassword,
                 role: "USER",
                 provider: "local",
+                verifyEmailToken: verifyToken,
+                verifyEmailExpires,
             },
             select: {
                 id: true,
@@ -50,9 +64,22 @@ const register = async (req, res) => {
             },
         });
 
-        // 5. Trả về kết quả
+        // 6. Gửi email xác thực
+        const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
+
+        await sendEmail({
+            to: newUser.email,
+            subject: "Xác thực tài khoản - JWT Auth Service",
+            text: `Vui lòng truy cập link sau để xác thực tài khoản: ${verifyUrl}`,
+            html: verifyEmailTemplate({
+                name: newUser.name,
+                verifyUrl,
+            }),
+        });
+
+        // 7. Trả về kết quả
         return res.status(201).json({
-            message: "Đăng ký tài khoản thành công", 
+            message: "Đăng ký tài khoản thành công. Vui lòng kiểm tra email để xác thực tài khoản.",
             user: newUser,
         }); 
     } catch(error) {
@@ -90,6 +117,12 @@ const login = async (req, res) => {
         if (user.status === "BLOCKED") {
             return res.status(403).json({
                 message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+            });
+        }
+
+        if (user.provider === "local" && !user.isVerified) {
+            return res.status(403).json({
+                message: "Tài khoản chưa xác thực email. Vui lòng kiểm tra email để xác thực tài khoản.",
             });
         }
 
@@ -358,6 +391,16 @@ const changePassword = async (req, res) => {
             },
         });
 
+        await sendEmail({
+            to: user.email,
+            subject: "Thông báo đổi mật khẩu - JWT Auth Service",
+            text: "Mật khẩu tài khoản của bạn vừa được thay đổi.",
+            html: securityAlertTemplate({
+                name: user.name,
+                action: "Đổi mật khẩu tài khoản",
+            }),
+        });
+
         return res.status(200).json({
             message: "Đổi mật khẩu thành công. Vui lòng đăng nhập lại.",
         });
@@ -373,38 +416,42 @@ const changePassword = async (req, res) => {
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
-  
-        // 1. Kiểm tra email có tồn tại không
+
         if (!email) {
-        return res.status(400).json({
-          message: "Vui lòng nhập email",
+            return res.status(400).json({
+                message: "Vui lòng nhập email",
             });
-       }
-  
+        }
+
         const user = await prisma.user.findUnique({
             where: {
                 email,
             },
         });
-  
-         // Không nói rõ email có tồn tại hay không để tránh lộ thông tin tài khoản
+
         if (!user) {
             return res.status(200).json({
                 message: "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu",
             });
         }
-  
+
         if (user.provider !== "local") {
             return res.status(400).json({
                 message: "Tài khoản này đăng nhập bằng Google/Facebook, không thể reset mật khẩu theo cách này",
             });
         }
-  
+
+        if (user.status === "BLOCKED") {
+            return res.status(403).json({
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+            });
+        }
+
         const resetToken = crypto.randomBytes(32).toString("hex");
-  
+
         const resetPasswordExpires = new Date();
         resetPasswordExpires.setMinutes(resetPasswordExpires.getMinutes() + 15);
-  
+
         await prisma.user.update({
             where: {
                 id: user.id,
@@ -414,14 +461,24 @@ const forgotPassword = async (req, res) => {
                 resetPasswordExpires,
             },
         });
-  
+
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+
+        await sendEmail({
+            to: user.email,
+            subject: "Đặt lại mật khẩu - JWT Auth Service",
+            text: `Vui lòng truy cập link sau để đặt lại mật khẩu: ${resetUrl}`,
+            html: resetPasswordTemplate({
+                name: user.name,
+                resetUrl,
+            }),
+        });
+
         return res.status(200).json({
-            message: "Tạo reset token thành công. Bản demo trả token trực tiếp để test.",
-            resetToken,
-            expiresIn: "15 phút",
-         });
-        } catch (error) {
-             return res.status(500).json({
+            message: "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu",
+        });
+    } catch (error) {
+        return res.status(500).json({
             message: "Lỗi server khi yêu cầu quên mật khẩu",
             error: error.message,
         });
@@ -482,7 +539,17 @@ const resetPassword = async (req, res) => {
           revokedAt: new Date(),
         },
       });
-  
+
+      await sendEmail({
+        to: user.email,
+        subject: "Thông báo đặt lại mật khẩu - JWT Auth Service",
+        text: "Mật khẩu tài khoản của bạn vừa được đặt lại.",
+        html: securityAlertTemplate({
+          name: user.name,
+          action: "Đặt lại mật khẩu tài khoản",
+        }),
+      });
+
       return res.status(200).json({
         message: "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.",
       });
@@ -492,6 +559,133 @@ const resetPassword = async (req, res) => {
         error: error.message,
       });
     }
+};
+
+
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.query;
+
+    if (!token) {
+      return res.status(400).json({
+        message: "Thiếu token xác thực email",
+      });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        verifyEmailToken: token,
+        verifyEmailExpires: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Token xác thực không hợp lệ hoặc đã hết hạn",
+      });
+    }
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        isVerified: true,
+        verifyEmailToken: null,
+        verifyEmailExpires: null,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Xác thực email thành công. Bạn có thể đăng nhập.",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi server khi xác thực email",
+      error: error.message,
+    });
+  }
+};
+
+
+const resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Vui lòng nhập email",
+      });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      return res.status(200).json({
+        message: "Nếu email tồn tại và chưa xác thực, hệ thống sẽ gửi lại email xác thực",
+      });
+    }
+
+    if (user.provider !== "local") {
+      return res.status(400).json({
+        message: "Tài khoản này đăng nhập bằng Google/Facebook, không cần xác thực email theo cách này",
+      });
+    }
+
+    if (user.status === "BLOCKED") {
+      return res.status(403).json({
+        message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        message: "Tài khoản này đã được xác thực email",
+      });
+    }
+
+    const verifyToken = crypto.randomBytes(32).toString("hex");
+
+    const verifyEmailExpires = new Date();
+    verifyEmailExpires.setHours(verifyEmailExpires.getHours() + 24);
+
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        verifyEmailToken: verifyToken,
+        verifyEmailExpires,
+      },
+    });
+
+    const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
+
+    await sendEmail({
+      to: user.email,
+      subject: "Gửi lại email xác thực - JWT Auth Service",
+      text: `Vui lòng truy cập link sau để xác thực tài khoản: ${verifyUrl}`,
+      html: verifyEmailTemplate({
+        name: user.name,
+        verifyUrl,
+      }),
+    });
+
+    return res.status(200).json({
+      message: "Nếu email tồn tại và chưa xác thực, hệ thống sẽ gửi lại email xác thực",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi server khi gửi lại email xác thực",
+      error: error.message,
+    });
+  }
 };
 
 
@@ -565,6 +759,8 @@ module.exports = {
     changePassword,
     forgotPassword,
     resetPassword,
+    verifyEmail,
+    resendVerificationEmail,
     googleCallback,
     facebookCallback,
 };

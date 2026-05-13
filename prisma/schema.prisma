@@ -26,6 +26,9 @@ model User {
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
 
+  verifyEmailToken   String?
+  verifyEmailExpires DateTime?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

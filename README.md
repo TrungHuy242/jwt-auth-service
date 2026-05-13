@@ -18,12 +18,15 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - [API Reference](#api-reference)
   - [Health API](#health-api)
   - [Auth API](#auth-api)
+  - [Email API](#email-api)
   - [User Profile API](#user-profile-api)
   - [Admin API](#admin-api)
+  - [Upload File API](#upload-file-api)
 - [Request Examples](#request-examples)
 - [Roles & Permissions](#roles--permissions)
 - [Security Notes](#security-notes)
 - [OAuth Configuration](#oauth-configuration)
+- [Email Configuration](#email-configuration)
 - [License](#license)
 
 ---
@@ -45,23 +48,32 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - Forgot / Reset password
 - Google OAuth 2.0 login
 - Facebook OAuth login
-- Admin xem chi tiết người dùng
-- Admin đổi role người dùng
-- Admin khóa / mở khóa tài khoản
-- Admin tìm kiếm, lọc, phân trang danh sách người dùng
-- Upload 1 file dùng chung
-- Upload nhiều file cùng lúc
-- Lưu thông tin file vào database
-- Xem danh sách file đã upload
-- Tìm kiếm, lọc, phân trang danh sách file
-- Xem chi tiết file theo ID
-- Xóa file đã upload
-- Phân quyền file: user chỉ quản lý file của mình, admin quản lý tất cả
-- Middleware phân quyền linh hoạt theo role
+- Admin xem chi tiet nguoi dung
+- Admin doi role nguoi dung
+- Admin khoa / mo khoa tai khoan
+- Admin tim kiem, loc, phan trang danh sach nguoi dung
+- Upload 1 file dung chung
+- Upload nhieu file cung luc
+- Luu thong tin file vao database
+- Xem danh sach file da upload
+- Tim kiem, loc, phan trang danh sach file
+- Xem chi tiet file theo ID
+- Xoa file da upload
+- Phan quyen file: user chi quan ly file cua minh, admin quan ly tat ca
+- Middleware phan quyen linh hoat theo role
 - Rate limiting (anti-spam)
 - Helmet HTTP security headers
 - Health check endpoint with database status
 - Docker containerization with MySQL
+- Gui email test bang Nodemailer
+- Gui email dat lai mat khau
+- Gui email xac thuc tai khoan
+- Gui lai email xac thuc
+- Chan dang nhap neu chua xac thuc email
+- Gui email thong bao khi doi mat khau
+- Gui email thong bao khi reset mat khau
+- Gui email thong bao khi tai khoan bi khoa / mo khoa
+- Email template HTML dung lai duoc
 
 ---
 
@@ -78,6 +90,7 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 | OAuth          | Passport.js         |
 | HTTP Security  | Helmet              |
 | Rate Limiting  | Express Rate Limit  |
+| Email          | Nodemailer          |
 | Environment    | Dotenv              |
 | Container      | Docker + Compose    |
 
@@ -87,50 +100,57 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 
 ```txt
 jwt-auth-service/
-|
-|-- prisma/
-|   |-- schema.prisma
-|
-|-- src/
-|   |-- config/
-|   |   |-- prisma.js
-|   |   |-- passport.js
-|   |
-|   |-- controllers/
-|   |   |-- auth.controller.js
-|   |   |-- user.controller.js
-|   |   |-- admin.controller.js
-|   |   |-- upload.controller.js
-|   |   |-- middlewares/
-|   |   |-- auth.middleware.js
-|   |   |-- upload.middleware.js
-|   |   |-- validate.middleware.js
-|   |   |-- rateLimit.middleware.js
-|   |
-|   |-- routes/
-|   |   |-- auth.routes.js
-|   |   |-- user.routes.js
-|   |   |-- admin.routes.js
-|   |   |-- health.routes.js
-|   |   |-- upload.routes.js
-|
-|   |-- services/
-|   |   |-- auth.service.js
-|   |
-|   |-- utils/
-|   |   |-- token.js
-|   |
-|   |-- server.js
-|
-|-- .dockerignore
-|-- Dockerfile
-|-- docker-compose.yml
-|-- .env.example
-|-- .gitignore
-|-- uploads/
-|   |-- avatars/
-|-- package.json
-|-- README.md
+
+-- prisma/
+   |-- schema.prisma
+
+-- src/
+   |-- config/
+   |   |-- prisma.js
+   |   |-- passport.js
+   |   |-- email.js
+
+   |-- controllers/
+   |   |-- auth.controller.js
+   |   |-- user.controller.js
+   |   |-- admin.controller.js
+   |   |-- upload.controller.js
+   |   |-- email.controller.js
+
+   |-- middlewares/
+   |   |-- auth.middleware.js
+   |   |-- upload.middleware.js
+   |   |-- validate.middleware.js
+   |   |-- rateLimit.middleware.js
+
+   |-- routes/
+   |   |-- auth.routes.js
+   |   |-- user.routes.js
+   |   |-- admin.routes.js
+   |   |-- health.routes.js
+   |   |-- upload.routes.js
+   |   |-- email.routes.js
+
+   |-- services/
+   |   |-- email.service.js
+
+   |-- templates/
+   |   |-- email.templates.js
+
+   |-- utils/
+   |   |-- token.js
+
+   |-- server.js
+
+-- .dockerignore
+-- Dockerfile
+-- docker-compose.yml
+-- .env.example
+-- .gitignore
+-- uploads/
+   |-- avatars/
+-- package.json
+-- README.md
 ```
 
 ---
@@ -295,20 +315,28 @@ Server runs at: **http://localhost:5000**
 
 ### Auth API
 
-| Method | Endpoint                      | Description          |
-|--------|-------------------------------|----------------------|
-| POST   | `/api/auth/register`           | Register new account |
-| POST   | `/api/auth/login`             | Login                |
-| GET    | `/api/auth/me`                | Get current user     |
-| POST   | `/api/auth/refresh-token`      | Refresh access token |
-| POST   | `/api/auth/logout`             | Logout               |
-| PATCH  | `/api/auth/change-password`   | Change password      |
-| POST   | `/api/auth/forgot-password`   | Forgot password      |
-| POST   | `/api/auth/reset-password`    | Reset password       |
-| GET    | `/api/auth/google`            | Google login         |
-| GET    | `/api/auth/google/callback`   | Google callback      |
-| GET    | `/api/auth/facebook`          | Facebook login       |
-| GET    | `/api/auth/facebook/callback`  | Facebook callback    |
+| Method | Endpoint                            | Description                    |
+|--------|-------------------------------------|-------------------------------|
+| POST   | `/api/auth/register`                 | Register and send verify email |
+| POST   | `/api/auth/login`                   | Login                         |
+| GET    | `/api/auth/verify-email?token=...` | Verify email                  |
+| POST   | `/api/auth/resend-verification-email` | Resend verification email   |
+| GET    | `/api/auth/me`                      | Get current user              |
+| POST   | `/api/auth/refresh-token`            | Refresh access token          |
+| POST   | `/api/auth/logout`                  | Logout                        |
+| PATCH  | `/api/auth/change-password`          | Change password + send alert |
+| POST   | `/api/auth/forgot-password`          | Send reset password email    |
+| POST   | `/api/auth/reset-password`           | Reset password + send alert  |
+| GET    | `/api/auth/google`                  | Google login                  |
+| GET    | `/api/auth/google/callback`         | Google callback               |
+| GET    | `/api/auth/facebook`                | Facebook login                |
+| GET    | `/api/auth/facebook/callback`       | Facebook callback             |
+
+### Email API
+
+| Method | Endpoint            | Description                |
+|--------|---------------------|----------------------------|
+| POST   | `/api/emails/test`  | Admin send test email     |
 
 ### User Profile API
 
@@ -317,26 +345,26 @@ Server runs at: **http://localhost:5000**
 | GET    | `/api/users/me`        | View current user profile      |
 | PATCH  | `/api/users/me`        | Update current user profile    |
 | PATCH  | `/api/users/me/avatar` | Upload / update avatar        |
-| DELETE | `/api/users/me/avatar` | Delete avatar                  |
+| DELETE | `/api/users/me/avatar`| Delete avatar                  |
 
 ### Admin API
 
-| Method | Endpoint                    | Description                                      |
-|--------|-----------------------------|--------------------------------------------------|
-| GET    | `/api/admin/users`          | Admin list users with pagination/search/filter  |
-| GET    | `/api/admin/users/:id`      | Admin view user details                          |
+| Method | Endpoint                     | Description                                      |
+|--------|------------------------------|--------------------------------------------------|
+| GET    | `/api/admin/users`           | Admin list users with pagination/search/filter  |
+| GET    | `/api/admin/users/:id`       | Admin view user details                          |
 | PATCH  | `/api/admin/users/:id/role`  | Admin change user role                           |
-| PATCH  | `/api/admin/users/:id/status`| Admin lock / unlock account                     |
+| PATCH  | `/api/admin/users/:id/status`| Admin lock / unlock account + send email        |
 
 ### Upload File API
 
 | Method | Endpoint                 | Description                              |
 |--------|--------------------------|------------------------------------------|
-| POST   | `/api/uploads/single`   | Upload 1 file                            |
-| POST   | `/api/uploads/multiple`  | Upload nhiều file                       |
-| GET    | `/api/uploads`          | Lấy danh sách file đã upload            |
-| GET    | `/api/uploads/:id`      | Xem chi tiết file                       |
-| DELETE | `/api/uploads/:id`      | Xóa file                                |
+| POST   | `/api/uploads/single`    | Upload 1 file                            |
+| POST   | `/api/uploads/multiple`   | Upload nhieu file                        |
+| GET    | `/api/uploads`           | Lay danh sach file da upload            |
+| GET    | `/api/uploads/:id`       | Xem chi tiet file                       |
+| DELETE | `/api/uploads/:id`       | Xoa file                                 |
 
 ---
 
@@ -413,6 +441,57 @@ Content-Type: application/json
 
 {
   "refreshToken": "<refresh_token>"
+}
+```
+
+### Verify Email
+
+```http
+GET /api/auth/verify-email?token=verify_token
+```
+
+### Resend Verification Email
+
+```http
+POST /api/auth/resend-verification-email
+Content-Type: application/json
+
+{
+  "email": "user@gmail.com"
+}
+```
+
+### Forgot Password With Email
+
+```http
+POST /api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@gmail.com"
+}
+```
+
+After calling this API, the system will send a password reset link via email.
+
+### Send Test Email
+
+```http
+POST /api/emails/test
+Authorization: Bearer admin_access_token
+Content-Type: application/json
+
+{
+  "to": "receiver@gmail.com"
+}
+```
+
+Response:
+
+```json
+{
+  "message": "Gui email test thanh cong",
+  "messageId": "..."
 }
 ```
 
@@ -522,6 +601,8 @@ Only accounts with the `ADMIN` role can access `/api/admin/*` routes.
 - Refresh tokens are persisted in the database and can be revoked.
 - On logout, the refresh token is revoked.
 - On password change or reset, all old refresh tokens are revoked.
+- Email verification required for local accounts before login.
+- Security alert emails sent on password changes and account status changes.
 - **Never commit your `.env` file to GitHub.**
 
 ---
@@ -540,6 +621,33 @@ GOOGLE_CALLBACK_URL="http://localhost:5000/api/auth/google/callback"
 FACEBOOK_APP_ID="your_facebook_app_id"
 FACEBOOK_APP_SECRET="your_facebook_app_secret"
 FACEBOOK_CALLBACK_URL="http://localhost:5000/api/auth/facebook/callback"
+```
+
+---
+
+## Email Configuration
+
+To send emails using Gmail SMTP, do not use your regular Gmail password. You need to create a Gmail App Password.
+
+### Steps to create App Password:
+
+1. Go to Google Account
+2. Go to Security
+3. Enable 2-Step Verification
+4. Create App Password for Mail
+5. Copy the 16-character password
+6. Paste into `EMAIL_PASS` in your `.env` file
+
+### Environment Variables:
+
+```env
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER="your_email@gmail.com"
+EMAIL_PASS="your_gmail_app_password"
+EMAIL_FROM_NAME="JWT Auth Service"
+EMAIL_FROM_ADDRESS="your_email@gmail.com"
 ```
 
 ---
