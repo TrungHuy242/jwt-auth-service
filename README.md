@@ -49,6 +49,14 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - Admin đổi role người dùng
 - Admin khóa / mở khóa tài khoản
 - Admin tìm kiếm, lọc, phân trang danh sách người dùng
+- Upload 1 file dùng chung
+- Upload nhiều file cùng lúc
+- Lưu thông tin file vào database
+- Xem danh sách file đã upload
+- Tìm kiếm, lọc, phân trang danh sách file
+- Xem chi tiết file theo ID
+- Xóa file đã upload
+- Phân quyền file: user chỉ quản lý file của mình, admin quản lý tất cả
 - Middleware phân quyền linh hoạt theo role
 - Rate limiting (anti-spam)
 - Helmet HTTP security headers
@@ -92,8 +100,8 @@ jwt-auth-service/
 |   |   |-- auth.controller.js
 |   |   |-- user.controller.js
 |   |   |-- admin.controller.js
-|   |
-|   |-- middlewares/
+|   |   |-- upload.controller.js
+|   |   |-- middlewares/
 |   |   |-- auth.middleware.js
 |   |   |-- upload.middleware.js
 |   |   |-- validate.middleware.js
@@ -104,7 +112,8 @@ jwt-auth-service/
 |   |   |-- user.routes.js
 |   |   |-- admin.routes.js
 |   |   |-- health.routes.js
-|   |
+|   |   |-- upload.routes.js
+|
 |   |-- services/
 |   |   |-- auth.service.js
 |   |
@@ -319,6 +328,16 @@ Server runs at: **http://localhost:5000**
 | PATCH  | `/api/admin/users/:id/role`  | Admin change user role                           |
 | PATCH  | `/api/admin/users/:id/status`| Admin lock / unlock account                     |
 
+### Upload File API
+
+| Method | Endpoint                 | Description                              |
+|--------|--------------------------|------------------------------------------|
+| POST   | `/api/uploads/single`   | Upload 1 file                            |
+| POST   | `/api/uploads/multiple`  | Upload nhiều file                       |
+| GET    | `/api/uploads`          | Lấy danh sách file đã upload            |
+| GET    | `/api/uploads/:id`      | Xem chi tiết file                       |
+| DELETE | `/api/uploads/:id`      | Xóa file                                |
+
 ---
 
 ## Request Examples
@@ -434,6 +453,53 @@ Authorization: Bearer <access_token>
 ```http
 GET /api/admin/users?page=1&limit=10&search=ngan&role=USER&status=ACTIVE&provider=local
 Authorization: Bearer <admin_access_token>
+```
+
+### Upload Single File
+
+```http
+POST /api/uploads/single
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+
+Form-data:
+  file: <file to upload>
+  folder: products
+```
+
+### Upload Multiple Files
+
+```http
+POST /api/uploads/multiple
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+
+Form-data:
+  files: <file 1>
+  files: <file 2>
+  files: <file 3>
+  folder: products
+```
+
+### Get Uploaded Files
+
+```http
+GET /api/uploads?page=1&limit=10&search=demo&folder=products&type=IMAGE
+Authorization: Bearer <access_token>
+```
+
+### Get Uploaded File By ID
+
+```http
+GET /api/uploads/:id
+Authorization: Bearer <access_token>
+```
+
+### Delete Uploaded File
+
+```http
+DELETE /api/uploads/:id
+Authorization: Bearer <access_token>
 ```
 
 ---

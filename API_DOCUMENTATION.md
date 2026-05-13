@@ -40,6 +40,12 @@
   - [GET /](#23-get-)
   - [GET /api/health](#24-get-apihealth)
   - [GET /api/test-db](#25-get-apitest-db)
+- [Upload File](#upload-file)
+  - [POST /api/uploads/single](#26-post-apiuploadssingle)
+  - [POST /api/uploads/multiple](#27-post-apiuploadsmultiple)
+  - [GET /api/uploads](#28-get-apiuploads)
+  - [GET /api/uploads/:id](#29-get-apiuploadsid)
+  - [DELETE /api/uploads/:id](#30-delete-apiuploadsid)
 - [Response Formats](#response-formats)
 - [Error Codes](#error-codes)
 - [Rate Limiting](#rate-limiting)
@@ -1001,6 +1007,327 @@ Test database connection and return all users (for debugging).
 
 ---
 
+## Upload File
+
+### 26. POST `/api/uploads/single`
+
+Upload a single file.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+
+| Field   | Type | Required | Description                                      |
+|---------|------|----------|--------------------------------------------------|
+| `file`  | file | Yes      | File to upload (max 50MB)                        |
+| `folder`| string | No     | Folder name (default: `general`)               |
+
+**Example Request:**
+
+```
+POST /api/uploads/single
+Authorization: Bearer <accessToken>
+Content-Type: multipart/form-data
+
+file: <binary file data>
+folder: products
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "message": "Upload file thành công",
+  "file": {
+    "id": 1,
+    "originalName": "demo.png",
+    "fileName": "demo-17123456789.png",
+    "filePath": "uploads/products/demo-17123456789.png",
+    "fileUrl": "http://localhost:5000/uploads/products/demo-17123456789.png",
+    "mimeType": "image/png",
+    "size": 12345,
+    "folder": "products",
+    "type": "IMAGE",
+    "uploadedById": 1,
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                   |
+|--------|-------------------------------------------|
+| 400    | Vui lòng chọn file để upload             |
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi upload file               |
+
+---
+
+### 27. POST `/api/uploads/multiple`
+
+Upload multiple files at once.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+
+| Field   | Type   | Required | Description                                      |
+|---------|--------|----------|--------------------------------------------------|
+| `files` | file[] | Yes      | Files to upload (array, max 50MB each)           |
+| `folder`| string | No       | Folder name (default: `general`)                 |
+
+**Example Request:**
+
+```
+POST /api/uploads/multiple
+Authorization: Bearer <accessToken>
+Content-Type: multipart/form-data
+
+files: <binary file 1>
+files: <binary file 2>
+files: <binary file 3>
+folder: products
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "message": "Upload nhiều file thành công",
+  "total": 3,
+  "files": [
+    {
+      "id": 2,
+      "originalName": "image1.png",
+      "fileName": "image1-17123456789.png",
+      "filePath": "uploads/products/image1-17123456789.png",
+      "fileUrl": "http://localhost:5000/uploads/products/image1-17123456789.png",
+      "mimeType": "image/png",
+      "size": 12345,
+      "folder": "products",
+      "type": "IMAGE",
+      "uploadedById": 1,
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                        |
+|--------|------------------------------------------------|
+| 400    | Vui lòng chọn ít nhất một file để upload      |
+| 401    | No token provided / Token expired / Invalid    |
+| 500    | Lỗi server khi upload nhiều file              |
+
+---
+
+### 28. GET `/api/uploads`
+
+Get a paginated list of uploaded files.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Query Parameters:**
+
+| Parameter | Type   | Default | Description                                       |
+|-----------|--------|---------|---------------------------------------------------|
+| `page`    | number | 1       | Page number (min: 1)                              |
+| `limit`   | number | 10      | Items per page (min: 1)                          |
+| `search`  | string | ""      | Search by originalName or fileName               |
+| `folder`  | string | -       | Filter by folder name                            |
+| `type`    | string | -       | Filter by type: `IMAGE`, `DOCUMENT`, `VIDEO`, `AUDIO`, `OTHER` |
+
+**Example Request:**
+
+```
+GET /api/uploads?page=1&limit=10&search=demo&folder=products&type=IMAGE
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Lấy danh sách file thành công",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalFiles": 1,
+    "totalPages": 1
+  },
+  "filters": {
+    "search": "demo",
+    "folder": "products",
+    "type": "IMAGE"
+  },
+  "files": [
+    {
+      "id": 1,
+      "originalName": "demo.png",
+      "fileName": "demo-17123456789.png",
+      "filePath": "uploads/products/demo-17123456789.png",
+      "fileUrl": "http://localhost:5000/uploads/products/demo-17123456789.png",
+      "mimeType": "image/png",
+      "size": 12345,
+      "folder": "products",
+      "type": "IMAGE",
+      "uploadedById": 1,
+      "uploadedBy": {
+        "id": 1,
+        "name": "Kim Ngan",
+        "email": "ngan@gmail.com",
+        "role": "USER"
+      }
+    }
+  ]
+}
+```
+
+**Notes:**
+
+```
+USER thường chỉ xem file do chính mình upload.
+ADMIN xem được toàn bộ file.
+```
+
+**Error Responses:**
+
+| Status | Message                                    |
+|--------|--------------------------------------------|
+| 400    | Page không hợp lệ / Limit không hợp lệ  |
+| 400    | Type không hợp lệ                         |
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi lấy danh sách file        |
+
+---
+
+### 29. GET `/api/uploads/:id`
+
+Get details of a specific uploaded file by ID.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Lấy chi tiết file thành công",
+  "file": {
+    "id": 1,
+    "originalName": "demo.png",
+    "fileName": "demo-17123456789.png",
+    "filePath": "uploads/products/demo-17123456789.png",
+    "fileUrl": "http://localhost:5000/uploads/products/demo-17123456789.png",
+    "mimeType": "image/png",
+    "size": 12345,
+    "folder": "products",
+    "type": "IMAGE",
+    "uploadedById": 1,
+    "uploadedBy": {
+      "id": 1,
+      "name": "Kim Ngan",
+      "email": "ngan@gmail.com",
+      "role": "USER"
+    }
+  }
+}
+```
+
+**Notes:**
+
+```
+USER thường chỉ xem file do chính mình upload.
+ADMIN xem được mọi file.
+```
+
+**Error Responses:**
+
+| Status | Message                                   |
+|--------|-------------------------------------------|
+| 400    | ID file không hợp lệ                    |
+| 401    | No token provided / Token expired / Invalid |
+| 403    | Bạn không có quyền xem file này         |
+| 404    | Không tìm thấy file                      |
+| 500    | Lỗi server khi lấy chi tiết file        |
+
+---
+
+### 30. DELETE `/api/uploads/:id`
+
+Delete an uploaded file by ID.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Xóa file thành công",
+  "deletedFile": {
+    "id": 1,
+    "originalName": "demo.png",
+    "fileName": "demo-17123456789.png",
+    "fileUrl": "http://localhost:5000/uploads/products/demo-17123456789.png"
+  }
+}
+```
+
+**Notes:**
+
+```
+USER thường chỉ xóa file do chính mình upload.
+ADMIN xóa được mọi file.
+```
+
+**Error Responses:**
+
+| Status | Message                                   |
+|--------|-------------------------------------------|
+| 400    | ID file không hợp lệ                    |
+| 401    | No token provided / Token expired / Invalid |
+| 403    | Bạn không có quyền xóa file này         |
+| 404    | Không tìm thấy file                      |
+| 500    | Lỗi server khi xóa file                 |
+
+---
+
 ## Response Formats
 
 ### Success Response
@@ -1101,10 +1428,28 @@ Test database connection and return all users (for debugging).
 |-------------|----------|------------------------------------|
 | `id`        | int      | Auto-increment primary key         |
 | `token`     | string   | Unique refresh token               |
-| `userId`    | int      | Foreign key to User                |
+| `userId`    | int      | Foreign key to User               |
 | `expiresAt` | DateTime | Token expiration (default: 7 days) |
 | `revokedAt` | DateTime?| Revocation timestamp (null=active)  |
 | `createdAt` | DateTime | Token creation timestamp           |
+
+### UploadedFile
+
+| Field         | Type     | Description                                              |
+|---------------|----------|----------------------------------------------------------|
+| `id`          | int      | Auto-increment primary key                               |
+| `originalName`| string   | Original file name                                       |
+| `fileName`    | string   | Generated unique file name                               |
+| `filePath`    | string   | Server file path                                         |
+| `fileUrl`     | string   | Full URL to access the file                              |
+| `mimeType`    | string   | File MIME type                                           |
+| `size`        | int      | File size in bytes                                       |
+| `folder`      | string   | Storage folder name                                      |
+| `type`        | enum     | `IMAGE`, `DOCUMENT`, `VIDEO`, `AUDIO`, `OTHER`         |
+| `uploadedById`| int      | Foreign key to User                                      |
+| `uploadedBy`  | User     | Related user (included in responses)                      |
+| `createdAt`   | DateTime | Upload timestamp                                         |
+| `updatedAt`   | DateTime | Last update timestamp                                    |
 
 ---
 
