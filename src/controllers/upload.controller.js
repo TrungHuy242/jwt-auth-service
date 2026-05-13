@@ -72,6 +72,65 @@ const uploadSingleFile = async (req, res) => {
   }
 };
 
+const uploadMultipleFiles = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({
+        message: "Vui lòng chọn ít nhất một file để upload",
+      });
+    }
+
+    const folder = req.body.folder || req.query.folder || "general";
+
+    const filesData = req.files.map((file) => {
+      const fileUrl = `${req.protocol}://${req.get("host")}/${file.path.replace(
+        /\\/g,
+        "/"
+      )}`;
+
+      return {
+        originalName: file.originalname,
+        fileName: file.filename,
+        filePath: file.path.replace(/\\/g, "/"),
+        fileUrl,
+        mimeType: file.mimetype,
+        size: file.size,
+        folder,
+        type: getFileType(file.mimetype),
+        uploadedById: req.user.id,
+      };
+    });
+
+    await prisma.uploadedFile.createMany({
+      data: filesData,
+    });
+
+    const uploadedFiles = await prisma.uploadedFile.findMany({
+      where: {
+        uploadedById: req.user.id,
+        fileName: {
+          in: filesData.map((file) => file.fileName),
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return res.status(201).json({
+      message: "Upload nhiều file thành công",
+      total: uploadedFiles.length,
+      files: uploadedFiles,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi server khi upload nhiều file",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadSingleFile,
+  uploadMultipleFiles,
 };
