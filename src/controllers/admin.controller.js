@@ -1,6 +1,7 @@
 const prisma = require('../config/prisma');
 const { sendEmail } = require("../services/email.service");
 const { accountStatusTemplate } = require("../templates/email.templates");
+const { createNotification } = require("../services/notification.service");
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -247,6 +248,14 @@ const updateUserRole = async (req, res) => {
             },
         });
 
+        await createNotification({
+            userId,
+            title: "Vai trò tài khoản đã được cập nhật",
+            message: `Vai trò tài khoản của bạn đã được cập nhật thành ${role}. Vui lòng đăng nhập lại để áp dụng thay đổi.`,
+            type: "ACCOUNT",
+            link: "/profile",
+        });
+
         return res.status(200).json({
             message: "Cập nhật role người dùng thành công. Người dùng cần đăng nhập lại.",
             user: updatedUser,
@@ -355,6 +364,20 @@ const updateUserStatus = async (req, res) => {
                 name: updatedUser.name,
                 status,
             }),
+        });
+
+        await createNotification({
+            userId,
+            title:
+                status === "BLOCKED"
+                    ? "Tài khoản của bạn đã bị khóa"
+                    : "Tài khoản của bạn đã được mở khóa",
+            message:
+                status === "BLOCKED"
+                    ? "Tài khoản của bạn đã bị quản trị viên khóa. Vui lòng liên hệ quản trị viên nếu cần hỗ trợ."
+                    : "Tài khoản của bạn đã được mở khóa. Bạn có thể đăng nhập và sử dụng hệ thống bình thường.",
+            type: "ACCOUNT",
+            link: "/profile",
         });
 
         return res.status(200).json({

@@ -51,6 +51,14 @@
   - [GET /api/uploads](#28-get-apiuploads)
   - [GET /api/uploads/:id](#29-get-apiuploadsid)
   - [DELETE /api/uploads/:id](#30-delete-apiuploadsid)
+- [Notification APIs](#notification-apis)
+  - [GET /api/notifications](#34-get-apinotifications)
+  - [GET /api/notifications/unread-count](#35-get-apinotificationsunread-count)
+  - [PATCH /api/notifications/:id/read](#36-patch-apinotificationsidread)
+  - [PATCH /api/notifications/read-all](#37-patch-apinotificationsread-all)
+- [Admin Notification APIs](#admin-notification-apis)
+  - [POST /api/admin/notifications/user/:id](#38-post-apiadminnotificationsuserid)
+  - [POST /api/admin/notifications/broadcast](#39-post-apiadminnotificationsbroadcast)
 - [Response Formats](#response-formats)
 - [Error Codes](#error-codes)
 - [Rate Limiting](#rate-limiting)
@@ -1507,6 +1515,327 @@ Resend verification email to user's email address.
 
 ---
 
+## Notification APIs
+
+### 34. GET `/api/notifications`
+
+Get the current user's notifications with pagination and filters.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Query Parameters:**
+
+| Parameter | Type   | Default | Description                                     |
+|-----------|--------|---------|------------------------------------------------|
+| `page`    | number | 1       | Page number (min: 1)                           |
+| `limit`   | number | 10      | Items per page (min: 1)                       |
+| `isRead`  | string | -       | Filter: `true` or `false`                    |
+| `type`    | string | -       | Filter by type: `SYSTEM`, `SECURITY`, `ACCOUNT`, `ORDER`, `APPOINTMENT`, `COURSE`, `OTHER` |
+
+**Example Request:**
+
+```
+GET /api/notifications?page=1&limit=10&isRead=false&type=SYSTEM
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Lấy danh sách thông báo thành công",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalNotifications": 5,
+    "totalPages": 1
+  },
+  "filters": {
+    "isRead": "false",
+    "type": "SYSTEM"
+  },
+  "notifications": [
+    {
+      "id": 1,
+      "userId": 1,
+      "title": "Thông báo hệ thống",
+      "message": "Hệ thống sẽ bảo trì vào 22:00 tối nay.",
+      "type": "SYSTEM",
+      "isRead": false,
+      "link": "/notifications",
+      "createdAt": "2026-05-13T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+> **Note:** User chỉ xem được thông báo của chính mình.
+
+**Error Responses:**
+
+| Status | Message                                        |
+|--------|------------------------------------------------|
+| 400    | Page không hợp lệ / Limit không hợp lệ      |
+| 400    | isRead chỉ nhận giá trị true hoặc false      |
+| 400    | Type thông báo không hợp lệ                    |
+| 401    | No token provided / Token expired / Invalid     |
+| 500    | Lỗi server khi lấy danh sách thông báo       |
+
+---
+
+### 35. GET `/api/notifications/unread-count`
+
+Get the count of unread notifications for the current user.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Lấy số thông báo chưa đọc thành công",
+  "unreadCount": 3
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                    |
+|--------|--------------------------------------------|
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi lấy số thông báo chưa đọc |
+
+---
+
+### 36. PATCH `/api/notifications/:id/read`
+
+Mark a specific notification as read.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Đánh dấu thông báo đã đọc thành công",
+  "notification": {
+    "id": 1,
+    "title": "Thông báo hệ thống",
+    "isRead": true
+  }
+}
+```
+
+> **Note:** User chỉ cập nhật được thông báo của chính mình.
+
+**Error Responses:**
+
+| Status | Message                                        |
+|--------|------------------------------------------------|
+| 400    | ID thông báo không hợp lệ                     |
+| 401    | No token provided / Token expired / Invalid     |
+| 403    | Bạn không có quyền cập nhật thông báo này    |
+| 404    | Không tìm thấy thông báo                      |
+| 500    | Lỗi server khi đánh dấu thông báo đã đọc     |
+
+---
+
+### 37. PATCH `/api/notifications/read-all`
+
+Mark all unread notifications as read.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Đánh dấu tất cả thông báo đã đọc thành công",
+  "updatedCount": 3
+}
+```
+
+> **Note:** Only marks unread notifications as read. If no unread notifications exist, `updatedCount` will be 0.
+
+**Error Responses:**
+
+| Status | Message                                                  |
+|--------|----------------------------------------------------------|
+| 401    | No token provided / Token expired / Invalid              |
+| 500    | Lỗi server khi đánh dấu tất cả thông báo đã đọc       |
+
+---
+
+## Admin Notification APIs
+
+### 38. POST `/api/admin/notifications/user/:id`
+
+Send a notification to a specific user (admin only).
+
+**Authentication:** Required (Bearer Token with `ADMIN` role)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field    | Type   | Required | Description                                                                                              |
+|----------|--------|----------|----------------------------------------------------------------------------------------------------------|
+| `title`  | string | Yes      | Notification title                                                                                       |
+| `message`| string | Yes      | Notification message                                                                                      |
+| `type`   | string | No       | Type: `SYSTEM`, `SECURITY`, `ACCOUNT`, `ORDER`, `APPOINTMENT`, `COURSE`, `OTHER` (default: `SYSTEM`) |
+| `link`   | string | No       | Optional link to navigate to when clicking the notification                                                |
+
+**Example Request:**
+
+```json
+{
+  "title": "Thông báo từ quản trị viên",
+  "message": "Đây là thông báo test gửi riêng cho bạn.",
+  "type": "SYSTEM",
+  "link": "/profile"
+}
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "message": "Gửi thông báo cho người dùng thành công",
+  "user": {
+    "id": 2,
+    "name": "Test User",
+    "email": "test@example.com"
+  },
+  "notification": {
+    "id": 5,
+    "userId": 2,
+    "title": "Thông báo từ quản trị viên",
+    "message": "Đây là thông báo test gửi riêng cho bạn.",
+    "type": "SYSTEM",
+    "isRead": false,
+    "link": "/profile"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                                                          |
+|--------|----------------------------------------------------------------------------------|
+| 400    | Vui lòng nhập title và message                                                   |
+| 400    | Type không hợp lệ. Chỉ chấp nhận SYSTEM, SECURITY, ACCOUNT, ORDER, APPOINTMENT, COURSE hoặc OTHER |
+| 400    | ID người dùng không hợp lệ                                                     |
+| 401    | No token provided / Token expired / Invalid                                       |
+| 403    | Bạn không có quyền truy cập chức năng này                                        |
+| 404    | Không tìm thấy người dùng                                                       |
+| 500    | Lỗi server khi gửi thông báo cho người dùng                                     |
+
+---
+
+### 39. POST `/api/admin/notifications/broadcast`
+
+Send a notification to all active users or filter by role (admin only).
+
+**Authentication:** Required (Bearer Token with `ADMIN` role)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field    | Type   | Required | Description                                                                                              |
+|----------|--------|----------|----------------------------------------------------------------------------------------------------------|
+| `title`  | string | Yes      | Notification title                                                                                       |
+| `message`| string | Yes      | Notification message                                                                                      |
+| `type`   | string | No       | Type: `SYSTEM`, `SECURITY`, `ACCOUNT`, `ORDER`, `APPOINTMENT`, `COURSE`, `OTHER` (default: `SYSTEM`) |
+| `link`   | string | No       | Optional link                                                                                            |
+| `role`   | string | No       | Filter by role: `USER` or `ADMIN`                                                                      |
+
+**Example Request (all ACTIVE users):**
+
+```json
+{
+  "title": "Thông báo hệ thống",
+  "message": "Hệ thống sẽ bảo trì vào 22:00 tối nay.",
+  "type": "SYSTEM",
+  "link": "/notifications"
+}
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "message": "Gửi thông báo hàng loạt thành công",
+  "totalUsers": 5,
+  "createdCount": 5,
+  "filters": {
+    "role": null,
+    "status": "ACTIVE"
+  }
+}
+```
+
+**Example Request (filter by role USER):**
+
+```json
+{
+  "title": "Thông báo cho người dùng",
+  "message": "Đây là thông báo chỉ gửi cho role USER.",
+  "type": "SYSTEM",
+  "role": "USER",
+  "link": "/notifications"
+}
+```
+
+> **Note:** Broadcast chỉ gửi cho user ACTIVE. Nếu truyền role, hệ thống chỉ gửi cho user ACTIVE thuộc role đó.
+
+**Error Responses:**
+
+| Status | Message                                                                          |
+|--------|----------------------------------------------------------------------------------|
+| 400    | Vui lòng nhập title và message                                                   |
+| 400    | Type không hợp lệ. Chỉ chấp nhận SYSTEM, SECURITY, ACCOUNT, ORDER, APPOINTMENT, COURSE hoặc OTHER |
+| 400    | Role không hợp lệ. Chỉ chấp nhận USER hoặc ADMIN                                 |
+| 401    | No token provided / Token expired / Invalid                                       |
+| 403    | Bạn không có quyền truy cập chức năng này                                        |
+| 404    | Không có người dùng phù hợp để gửi thông báo                                   |
+| 500    | Lỗi server khi gửi thông báo hàng loạt                                         |
+
+---
+
 ## Response Formats
 
 ### Success Response
@@ -1632,6 +1961,20 @@ Resend verification email to user's email address.
 | `createdAt`   | DateTime | Upload timestamp                                         |
 | `updatedAt`   | DateTime | Last update timestamp                                    |
 
+### Notification
+
+| Field       | Type     | Description                                                   |
+|-------------|----------|---------------------------------------------------------------|
+| `id`        | int      | Auto-increment primary key                                    |
+| `userId`    | int      | Foreign key to User                                           |
+| `title`     | string   | Notification title                                            |
+| `message`   | string   | Notification message content                                   |
+| `type`      | enum     | `SYSTEM`, `SECURITY`, `ACCOUNT`, `ORDER`, `APPOINTMENT`, `COURSE`, `OTHER` |
+| `isRead`    | boolean  | Read status (default: false)                                  |
+| `link`      | string?  | Optional navigation link                                      |
+| `user`      | User     | Related user (included in responses)                           |
+| `createdAt` | DateTime | Creation timestamp                                            |
+
 ---
 
 ## Environment Variables
@@ -1673,6 +2016,7 @@ Resend verification email to user's email address.
 - **OAuth Support:** Google & Facebook OAuth 2.0
 - **Email Verification:** Required for local accounts before login
 - **Security Alerts:** Email notifications on password changes and account status changes
+- **In-app Notifications:** System notifications for role changes, account lock/unlock, and admin broadcasts
 
 ---
 

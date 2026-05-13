@@ -1,4 +1,4 @@
-﻿# JWT Authentication Service
+# JWT Authentication Service
 
 A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT and OAuth.
 
@@ -22,6 +22,8 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
   - [User Profile API](#user-profile-api)
   - [Admin API](#admin-api)
   - [Upload File API](#upload-file-api)
+- [Notification API](#notification-api)
+- [Admin Notification API](#admin-notification-api)
 - [Request Examples](#request-examples)
 - [Roles & Permissions](#roles--permissions)
 - [Security Notes](#security-notes)
@@ -74,6 +76,15 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - Gui email thong bao khi reset mat khau
 - Gui email thong bao khi tai khoan bi khoa / mo khoa
 - Email template HTML dung lai duoc
+- Tao thong bao trong he thong
+- User xem danh sach thong bao
+- Dem so thong bao chua doc
+- Danh dau mot thong bao la da doc
+- Danh dau tat ca thong bao la da doc
+- Admin gui thong bao cho mot user
+- Admin gui thong bao hang loat
+- Tu dong tao thong bao khi doi role user
+- Tu dong tao thong bao khi khoa / mo khoa tai khoan
 
 ---
 
@@ -91,6 +102,7 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 | HTTP Security  | Helmet              |
 | Rate Limiting  | Express Rate Limit  |
 | Email          | Nodemailer          |
+| Notification   | In-app Notifications |
 | Environment    | Dotenv              |
 | Container      | Docker + Compose    |
 
@@ -116,6 +128,8 @@ jwt-auth-service/
    |   |-- admin.controller.js
    |   |-- upload.controller.js
    |   |-- email.controller.js
+   |   |-- notification.controller.js
+   |   |-- adminNotification.controller.js
 
    |-- middlewares/
    |   |-- auth.middleware.js
@@ -130,9 +144,12 @@ jwt-auth-service/
    |   |-- health.routes.js
    |   |-- upload.routes.js
    |   |-- email.routes.js
+   |   |-- notification.routes.js
+   |   |-- adminNotification.routes.js
 
    |-- services/
    |   |-- email.service.js
+   |   |-- notification.service.js
 
    |-- templates/
    |   |-- email.templates.js
@@ -366,6 +383,22 @@ Server runs at: **http://localhost:5000**
 | GET    | `/api/uploads/:id`       | Xem chi tiet file                       |
 | DELETE | `/api/uploads/:id`       | Xoa file                                 |
 
+### Notification API
+
+| Method | Endpoint                            | M? t?                                    |
+|--------|-------------------------------------|------------------------------------------|
+| GET    | `/api/notifications`                | User xem danh s?ch th?ng b?o             |
+| GET    | `/api/notifications/unread-count`    | ??m th?ng b?o chua d?c                   |
+| PATCH  | `/api/notifications/:id/read`       | ??nh d?u m?t th?ng b?o d? d?c            |
+| PATCH  | `/api/notifications/read-all`        | ??nh d?u t?t c? th?ng b?o d? d?c        |
+
+### Admin Notification API
+
+| Method | Endpoint                                   | M? t?                                      |
+|--------|--------------------------------------------|------------------------------------------|
+| POST   | `/api/admin/notifications/user/:id`        | Admin g?i th?ng b?o cho m?t user          |
+| POST   | `/api/admin/notifications/broadcast`       | Admin g?i th?ng b?o h?ng lo?t            |
+
 ---
 
 ## Request Examples
@@ -581,6 +614,116 @@ DELETE /api/uploads/:id
 Authorization: Bearer <access_token>
 ```
 
+### Get My Notifications
+
+```http
+GET /api/notifications?page=1&limit=10&isRead=false&type=SYSTEM
+Authorization: Bearer <access_token>
+```
+
+### Get Unread Notification Count
+
+```http
+GET /api/notifications/unread-count
+Authorization: Bearer <access_token>
+```
+
+Response:
+
+```json
+{
+  "message": "L?y s? th?ng b?o chua d?c th?nh c?ng",
+  "unreadCount": 3
+}
+```
+
+### Mark Notification As Read
+
+```http
+PATCH /api/notifications/:id/read
+Authorization: Bearer <access_token>
+```
+
+### Mark All Notifications As Read
+
+```http
+PATCH /api/notifications/read-all
+Authorization: Bearer <access_token>
+```
+
+Response:
+
+```json
+{
+  "message": "??nh d?u t?t c? th?ng b?o d? d?c th?nh c?ng",
+  "updatedCount": 3
+}
+```
+
+### Admin Send Notification To User
+
+```http
+POST /api/admin/notifications/user/:id
+Authorization: Bearer <admin_access_token>
+Content-Type: application/json
+
+{
+  "title": "Th?ng b?o t? qu?n tr? vi?n",
+  "message": "??y l? th?ng b?o test g?i ri?ng cho b?n.",
+  "type": "SYSTEM",
+  "link": "/profile"
+}
+```
+
+### Admin Broadcast Notification
+
+```http
+POST /api/admin/notifications/broadcast
+Authorization: Bearer <admin_access_token>
+Content-Type: application/json
+
+{
+  "title": "Th?ng b?o h? th?ng",
+  "message": "H? th?ng s? b?o tr? v?o 22:00 t?i nay.",
+  "type": "SYSTEM",
+  "link": "/notifications"
+}
+```
+
+G?i theo role:
+
+```json
+{
+  "title": "Th?ng b?o cho ngu?i d?ng",
+  "message": "??y l? th?ng b?o ch? g?i cho role USER.",
+  "type": "SYSTEM",
+  "role": "USER",
+  "link": "/notifications"
+}
+```
+
+### Notification Types
+
+```txt
+SYSTEM
+SECURITY
+ACCOUNT
+ORDER
+APPOINTMENT
+COURSE
+OTHER
+
+? nghia:
+
+SYSTEM: th?ng b?o h? th?ng
+SECURITY: th?ng b?o b?o m?t
+ACCOUNT: t?i kho?n, role, kh?a/m? kh?a
+ORDER: don h?ng
+APPOINTMENT: l?ch h?n
+COURSE: kh?a h?c/b?i h?c
+OTHER: lo?i kh?c
+```
+
 ---
 
 ## Roles & Permissions
@@ -655,3 +798,7 @@ EMAIL_FROM_ADDRESS="your_email@gmail.com"
 ## License
 
 This project is built for educational purposes and final year capstone preparation.
+
+
+
+
