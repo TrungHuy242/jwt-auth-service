@@ -36,7 +36,11 @@ const isAuthenticated = async (req, res, next) => {
                 role: true,
                 provider: true,
                 avatar: true,
+                phone: true,
+                address: true,
+                status: true,
                 isVerified: true,
+                lastLoginAt: true,
                 createdAt: true,
                 updatedAt: true,
             },
@@ -45,6 +49,12 @@ const isAuthenticated = async (req, res, next) => {
         if(!user) {
             return res.status(401).json({
                 message: "Người dùng không tồn tại",
+            });
+        }
+
+        if (user.status === "BLOCKED") {
+            return res.status(403).json({
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
             });
         }
 
@@ -86,7 +96,26 @@ const isAdmin = async (req, res, next) => {
     next();
 };
 
+const allowRoles = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Bạn chưa đăng nhập",
+            });
+        }
+
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({
+                message: "Bạn không có quyền truy cập chức năng này",
+            });
+        }
+
+        next();
+    };
+};
+
 module.exports = {
     isAuthenticated,
     isAdmin,
+    allowRoles,
 };

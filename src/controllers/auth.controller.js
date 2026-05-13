@@ -87,6 +87,12 @@ const login = async (req, res) => {
             });
         }
 
+        if (user.status === "BLOCKED") {
+            return res.status(403).json({
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+            });
+        }
+
         // 3. Nếu tài khoản OAuth không có password
         if(!user.password) {
             return res.status(400).json({
@@ -103,11 +109,21 @@ const login = async (req, res) => {
             });
         }
 
-        // 5. Tạo access token
+        // 5. Cập nhật thời gian đăng nhập gần nhất
+        await prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                lastLoginAt: new Date(),
+            }
+        })
+
+        // 6. Tạo access token
         const accessToken = generateAccessToken(user);
         const refreshToken = generateRefreshToken(user);
 
-        // 6. Lưu refresh token vào database
+        // 7. Lưu refresh token vào database
         const expireAt = new Date();
         expireAt.setDate(expireAt.getDate() + 7);
 
@@ -119,7 +135,7 @@ const login = async (req, res) => {
             },
         });
 
-        // 7. Trả về kết quả
+        // 8. Trả về kết quả
         return res.status(200).json({
             message: "Đăng nhập thành công",
             accessToken,
@@ -201,6 +217,12 @@ const refreshToken = async (req, res) => {
 
         // 4. Verify refresh token
         jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+        if (storedToken.user.status === "BLOCKED") {
+            return res.status(403).json({
+                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+            });
+        }
 
         // 5. Tạo access token mới
         const accessToken = generateAccessToken(storedToken.user);

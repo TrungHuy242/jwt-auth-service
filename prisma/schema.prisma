@@ -18,6 +18,11 @@ model User {
   avatar      String?
   isVerified  Boolean  @default(false)
 
+  phone       String?
+  address     String?
+  status      UserStatus @default(ACTIVE)
+  lastLoginAt DateTime?
+
   resetPasswordToken   String?
   resetPasswordExpires DateTime?
 
@@ -29,7 +34,7 @@ model User {
 
 model RefreshToken {
   id        Int       @id @default(autoincrement())
-  token     String    @db.VarChar(512)
+  token     String    @unique @db.VarChar(512)
   userId    Int
   expiresAt DateTime
   revokedAt DateTime?
@@ -43,4 +48,9 @@ model RefreshToken {
 enum Role {
   USER
   ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
 }

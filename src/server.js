@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const session = require("express-session");
 const passport = require("./config/passport");
+const path = require("path");
 
 require("dotenv").config();
 
@@ -11,6 +12,7 @@ const prisma = require('./config/prisma');
 const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const healthRoutes = require("./routes/health.routes");
+const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
@@ -26,6 +28,7 @@ app.use(
     })
 );
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use(
     session({
@@ -57,6 +60,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/health", healthRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 5000;
 

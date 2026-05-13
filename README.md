@@ -18,6 +18,7 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - [API Reference](#api-reference)
   - [Health API](#health-api)
   - [Auth API](#auth-api)
+  - [User Profile API](#user-profile-api)
   - [Admin API](#admin-api)
 - [Request Examples](#request-examples)
 - [Roles & Permissions](#roles--permissions)
@@ -36,11 +37,19 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - User authentication middleware
 - Role-based access control (USER / ADMIN)
 - Get current user profile
+- Update current user profile
+- Upload avatar
+- Delete avatar
 - Logout with token revocation
 - Change password
 - Forgot / Reset password
 - Google OAuth 2.0 login
 - Facebook OAuth login
+- Admin xem chi tiết người dùng
+- Admin đổi role người dùng
+- Admin khóa / mở khóa tài khoản
+- Admin tìm kiếm, lọc, phân trang danh sách người dùng
+- Middleware phân quyền linh hoạt theo role
 - Rate limiting (anti-spam)
 - Helmet HTTP security headers
 - Health check endpoint with database status
@@ -81,15 +90,18 @@ jwt-auth-service/
 |   |
 |   |-- controllers/
 |   |   |-- auth.controller.js
+|   |   |-- user.controller.js
 |   |   |-- admin.controller.js
 |   |
 |   |-- middlewares/
 |   |   |-- auth.middleware.js
+|   |   |-- upload.middleware.js
 |   |   |-- validate.middleware.js
 |   |   |-- rateLimit.middleware.js
 |   |
 |   |-- routes/
 |   |   |-- auth.routes.js
+|   |   |-- user.routes.js
 |   |   |-- admin.routes.js
 |   |   |-- health.routes.js
 |   |
@@ -106,6 +118,8 @@ jwt-auth-service/
 |-- docker-compose.yml
 |-- .env.example
 |-- .gitignore
+|-- uploads/
+|   |-- avatars/
 |-- package.json
 |-- README.md
 ```
@@ -285,13 +299,25 @@ Server runs at: **http://localhost:5000**
 | GET    | `/api/auth/google`            | Google login         |
 | GET    | `/api/auth/google/callback`   | Google callback      |
 | GET    | `/api/auth/facebook`          | Facebook login       |
-| GET    | `/api/auth/facebook/callback` | Facebook callback    |
+| GET    | `/api/auth/facebook/callback`  | Facebook callback    |
+
+### User Profile API
+
+| Method | Endpoint               | Description                    |
+|--------|------------------------|--------------------------------|
+| GET    | `/api/users/me`        | View current user profile      |
+| PATCH  | `/api/users/me`        | Update current user profile    |
+| PATCH  | `/api/users/me/avatar` | Upload / update avatar        |
+| DELETE | `/api/users/me/avatar` | Delete avatar                  |
 
 ### Admin API
 
-| Method | Endpoint           | Description                   |
-|--------|--------------------|-------------------------------|
-| GET    | `/api/admin/users` | Get all users (ADMIN only)    |
+| Method | Endpoint                    | Description                                      |
+|--------|-----------------------------|--------------------------------------------------|
+| GET    | `/api/admin/users`          | Admin list users with pagination/search/filter  |
+| GET    | `/api/admin/users/:id`      | Admin view user details                          |
+| PATCH  | `/api/admin/users/:id/role`  | Admin change user role                           |
+| PATCH  | `/api/admin/users/:id/status`| Admin lock / unlock account                     |
 
 ---
 
@@ -371,6 +397,45 @@ Content-Type: application/json
 }
 ```
 
+### Update Profile
+
+```http
+PATCH /api/users/me
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "name": "Truong Thi Kim Ngan",
+  "phone": "0123456789",
+  "address": "Da Nang, Viet Nam"
+}
+```
+
+### Upload Avatar
+
+```http
+PATCH /api/users/me/avatar
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+
+Form-data:
+  avatar: <image file jpg/png/webp>
+```
+
+### Delete Avatar
+
+```http
+DELETE /api/users/me/avatar
+Authorization: Bearer <access_token>
+```
+
+### Admin Filter Users
+
+```http
+GET /api/admin/users?page=1&limit=10&search=ngan&role=USER&status=ACTIVE&provider=local
+Authorization: Bearer <admin_access_token>
+```
+
 ---
 
 ## Roles & Permissions
@@ -380,7 +445,7 @@ Content-Type: application/json
 | USER  | Standard user, can manage own account    |
 | ADMIN | Full access including user management    |
 
-Only accounts with the `ADMIN` role can access `/api/admin/users`.
+Only accounts with the `ADMIN` role can access `/api/admin/*` routes.
 
 ---
 

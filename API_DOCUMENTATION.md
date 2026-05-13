@@ -28,10 +28,18 @@
   - [GET /api/auth/facebook/failure](#14-get-apiauthfacebookfailure)
 - [Admin](#admin)
   - [GET /api/admin/users](#15-get-apiadminusers)
+  - [GET /api/admin/users/:id](#16-get-apiadminusersid)
+  - [PATCH /api/admin/users/:id/role](#17-patch-apiadminusersidrole)
+  - [PATCH /api/admin/users/:id/status](#18-patch-apiadminusersidstatus)
+- [User Profile](#user-profile)
+  - [GET /api/users/me](#19-get-apiusersme)
+  - [PATCH /api/users/me](#20-patch-apiusersme)
+  - [PATCH /api/users/me/avatar](#21-patch-apiusersmeavatar)
+  - [DELETE /api/users/me/avatar](#22-delete-apiusersmeavatar)
 - [Health & Utility](#health--utility)
-  - [GET /](#16-get-)
-  - [GET /api/health](#17-get-apihealth)
-  - [GET /api/test-db](#18-get-apitest-db)
+  - [GET /](#23-get-)
+  - [GET /api/health](#24-get-apihealth)
+  - [GET /api/test-db](#25-get-apitest-db)
 - [Response Formats](#response-formats)
 - [Error Codes](#error-codes)
 - [Rate Limiting](#rate-limiting)
@@ -519,7 +527,87 @@ Redirect URL when Facebook OAuth authentication fails.
 
 ### 15. GET `/api/admin/users`
 
-Get all registered users (admin only).
+Get all registered users with pagination, search, and filters (admin only).
+
+**Authentication:** Required (Bearer Token with `ADMIN` role)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Query Parameters:**
+
+| Parameter | Type   | Default | Description                                      |
+|-----------|--------|---------|--------------------------------------------------|
+| `page`    | number | 1       | Page number (min: 1)                             |
+| `limit`   | number | 10      | Items per page (min: 1)                          |
+| `search`  | string | ""      | Search by name, email, or phone                  |
+| `role`    | string | -       | Filter by role: `USER` or `ADMIN`               |
+| `status`  | string | -       | Filter by status: `ACTIVE` or `BLOCKED`         |
+| `provider`| string | -       | Filter by provider: `local`, `google`, `facebook`|
+
+**Example Request:**
+
+```
+GET /api/admin/users?page=1&limit=10&search=ngan&role=USER&status=ACTIVE&provider=local
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Lấy danh sách người dùng thành công",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalUsers": 3,
+    "totalPages": 1
+  },
+  "filters": {
+    "search": "",
+    "role": null,
+    "status": null,
+    "provider": null
+  },
+  "users": [
+    {
+      "id": 1,
+      "name": "Kim Ngan",
+      "email": "ngan@gmail.com",
+      "role": "USER",
+      "provider": "local",
+      "avatar": null,
+      "phone": null,
+      "address": null,
+      "status": "ACTIVE",
+      "isVerified": false,
+      "lastLoginAt": "2026-01-01T00:00:00.000Z",
+      "createdAt": "2026-01-01T00:00:00.000Z",
+      "updatedAt": "2026-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                      |
+|--------|----------------------------------------------|
+| 400    | Page không hợp lệ / Limit không hợp lệ     |
+| 400    | Role không hợp lệ                            |
+| 400    | Status không hợp lệ                         |
+| 400    | Provider không hợp lệ                        |
+| 401    | No token provided / Token expired / Invalid  |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 500    | Lỗi server khi lấy danh sách người dùng     |
+
+---
+
+### 16. GET `/api/admin/users/:id`
+
+Get detailed information of a specific user (admin only).
 
 **Authentication:** Required (Bearer Token with `ADMIN` role)
 
@@ -533,32 +621,22 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Lấy danh sách người dùng thành công",
-  "total": 3,
-  "users": [
-    {
-      "id": 1,
-      "name": "Trung Huy",
-      "email": "trunghuy@example.com",
-      "role": "USER",
-      "provider": "local",
-      "avatar": null,
-      "isVerified": false,
-      "createdAt": "2026-05-12T00:00:00.000Z",
-      "updatedAt": "2026-05-12T00:00:00.000Z"
-    },
-    {
-      "id": 2,
-      "name": "Admin User",
-      "email": "admin@example.com",
-      "role": "ADMIN",
-      "provider": "local",
-      "avatar": null,
-      "isVerified": false,
-      "createdAt": "2026-05-11T00:00:00.000Z",
-      "updatedAt": "2026-05-11T00:00:00.000Z"
-    }
-  ]
+  "message": "Lấy thông tin người dùng thành công",
+  "user": {
+    "id": 1,
+    "name": "Kim Ngan",
+    "email": "ngan@gmail.com",
+    "role": "USER",
+    "provider": "local",
+    "avatar": null,
+    "phone": null,
+    "address": null,
+    "status": "ACTIVE",
+    "isVerified": false,
+    "lastLoginAt": "2026-01-01T00:00:00.000Z",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
+  }
 }
 ```
 
@@ -567,14 +645,289 @@ Authorization: Bearer <accessToken>
 | Status | Message                                      |
 |--------|----------------------------------------------|
 | 401    | No token provided / Token expired / Invalid  |
-| 403    | Access denied. Admin privileges required.    |
-| 500    | Lỗi server khi lấy danh sách người dùng    |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 404    | Người dùng không tồn tại                     |
+| 500    | Lỗi server khi lấy thông tin người dùng     |
+
+---
+
+### 17. PATCH `/api/admin/users/:id/role`
+
+Change a user's role (admin only).
+
+**Authentication:** Required (Bearer Token with `ADMIN` role)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field | Type   | Required | Description                          |
+|-------|--------|----------|--------------------------------------|
+| `role`| string | Yes      | New role: `USER` or `ADMIN`          |
+
+**Example Request:**
+
+```json
+{
+  "role": "ADMIN"
+}
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Cập nhật quyền người dùng thành công",
+  "user": {
+    "id": 1,
+    "role": "ADMIN"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                      |
+|--------|----------------------------------------------|
+| 400    | Vui lòng chọn role là USER hoặc ADMIN       |
+| 400    | Không thể thay đổi role của chính mình     |
+| 401    | No token provided / Token expired / Invalid  |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 404    | Người dùng không tồn tại                     |
+| 500    | Lỗi server khi cập nhật role người dùng    |
+
+---
+
+### 18. PATCH `/api/admin/users/:id/status`
+
+Lock or unlock a user's account (admin only).
+
+**Authentication:** Required (Bearer Token with `ADMIN` role)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field   | Type   | Required | Description                              |
+|---------|--------|----------|------------------------------------------|
+| `status`| string | Yes      | New status: `ACTIVE` or `BLOCKED`       |
+
+**Example Request:**
+
+```json
+{
+  "status": "BLOCKED"
+}
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Khóa tài khoản người dùng thành công",
+  "user": {
+    "id": 1,
+    "status": "BLOCKED"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                      |
+|--------|----------------------------------------------|
+| 400    | Vui lòng chọn status là ACTIVE hoặc BLOCKED |
+| 401    | No token provided / Token expired / Invalid  |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 404    | Người dùng không tồn tại                     |
+| 500    | Lỗi server khi cập nhật trạng thái người dùng |
+
+---
+
+## User Profile
+
+### 19. GET `/api/users/me`
+
+Get the current authenticated user's profile.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Lấy hồ sơ cá nhân thành công",
+  "user": {
+    "id": 1,
+    "name": "Kim Ngan",
+    "email": "ngan@gmail.com",
+    "role": "USER",
+    "provider": "local",
+    "avatar": null,
+    "phone": null,
+    "address": null,
+    "status": "ACTIVE",
+    "isVerified": false,
+    "lastLoginAt": "2026-01-01T00:00:00.000Z",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "updatedAt": "2026-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                    |
+|--------|--------------------------------------------|
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi lấy hồ sơ cá nhân          |
+
+---
+
+### 20. PATCH `/api/users/me`
+
+Update the current authenticated user's profile.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+**Request Body:**
+
+| Field    | Type   | Required | Description                         |
+|----------|--------|----------|-------------------------------------|
+| `name`   | string | No       | Display name (min 1 char)          |
+| `phone`  | string | No       | Phone number                        |
+| `address`| string | No       | User address                        |
+
+**Example Request:**
+
+```json
+{
+  "name": "Truong Thi Kim Ngan",
+  "phone": "0123456789",
+  "address": "Da Nang, Viet Nam"
+}
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Cập nhật hồ sơ cá nhân thành công",
+  "user": {
+    "id": 1,
+    "name": "Truong Thi Kim Ngan",
+    "phone": "0123456789",
+    "address": "Da Nang, Viet Nam"
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                    |
+|--------|--------------------------------------------|
+| 400    | Tên phải có ít nhất 1 ký tự               |
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi cập nhật hồ sơ cá nhân    |
+
+---
+
+### 21. PATCH `/api/users/me/avatar`
+
+Upload or update the current user's avatar.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+
+| Field   | Type | Required | Description                          |
+|---------|------|----------|--------------------------------------|
+| `avatar`| file | Yes      | Image file (jpg, png, webp, max 5MB) |
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Upload avatar thành công",
+  "avatar": "/uploads/avatars/1749651234567-12345678.png"
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                    |
+|--------|--------------------------------------------|
+| 400    | Vui lòng chọn file avatar                 |
+| 400    | File avatar phải là jpg, png hoặc webp    |
+| 400    | Kích thước file avatar không được vượt quá 5MB |
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi upload avatar              |
+
+---
+
+### 22. DELETE `/api/users/me/avatar`
+
+Delete the current user's avatar.
+
+**Authentication:** Required (Bearer Token)
+
+**Headers:**
+
+```
+Authorization: Bearer <accessToken>
+```
+
+**Example Response (200 OK):**
+
+```json
+{
+  "message": "Xóa avatar thành công"
+}
+```
+
+**Error Responses:**
+
+| Status | Message                                    |
+|--------|--------------------------------------------|
+| 400    | Người dùng không có avatar để xóa        |
+| 401    | No token provided / Token expired / Invalid |
+| 500    | Lỗi server khi xóa avatar                 |
 
 ---
 
 ## Health & Utility
 
-### 16. GET `/`
+### 23. GET `/`
 
 Health check endpoint for the root path.
 
@@ -588,7 +941,7 @@ Health check endpoint for the root path.
 
 ---
 
-### 17. GET `/api/health`
+### 24. GET `/api/health`
 
 Full service health check including database connectivity.
 
@@ -617,7 +970,7 @@ Full service health check including database connectivity.
 
 ---
 
-### 18. GET `/api/test-db`
+### 25. GET `/api/test-db`
 
 Test database connection and return all users (for debugging).
 
@@ -672,8 +1025,19 @@ Test database connection and return all users (for debugging).
 
 ```json
 {
-  "message": "Success message",
-  "total": 10,
+  "message": "Lấy danh sách người dùng thành công",
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "totalUsers": 3,
+    "totalPages": 1
+  },
+  "filters": {
+    "search": "",
+    "role": null,
+    "status": null,
+    "provider": null
+  },
   "users": [ ... ]
 }
 ```
@@ -720,8 +1084,12 @@ Test database connection and return all users (for debugging).
 | `role`               | enum    | `USER` or `ADMIN`                          |
 | `provider`           | string  | `local`, `google`, or `facebook`           |
 | `providerId`         | string? | OAuth provider user ID                     |
-| `avatar`             | string? | Profile avatar URL                         |
-| `isVerified`         | boolean | Email verification status                  |
+| `avatar`             | string?  | Profile avatar URL (local or URL)          |
+| `phone`               | string?  | Phone number                              |
+| `address`             | string?  | User address                              |
+| `status`             | enum     | `ACTIVE` or `BLOCKED`                    |
+| `isVerified`         | boolean  | Email verification status                  |
+| `lastLoginAt`         | DateTime?| Last login timestamp                      |
 | `resetPasswordToken` | string? | Active password reset token               |
 | `resetPasswordExpires`| DateTime?| Reset token expiration time              |
 | `createdAt`          | DateTime| Account creation timestamp                 |
