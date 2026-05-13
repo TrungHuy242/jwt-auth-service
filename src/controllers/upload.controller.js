@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const prisma = require("../config/prisma");
 
 const getFileType = (mimeType) => {
@@ -290,9 +292,69 @@ const getUploadedFileById = async (req, res) => {
   }
 };
 
+const deleteUploadedFile = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const fileId = Number(id);
+
+    if (isNaN(fileId)) {
+      return res.status(400).json({
+        message: "ID file không hợp lệ",
+      });
+    }
+
+    const file = await prisma.uploadedFile.findUnique({
+      where: {
+        id: fileId,
+      },
+    });
+
+    if (!file) {
+      return res.status(404).json({
+        message: "Không tìm thấy file",
+      });
+    }
+
+    if (req.user.role !== "ADMIN" && file.uploadedById !== req.user.id) {
+      return res.status(403).json({
+        message: "Bạn không có quyền xóa file này",
+      });
+    }
+
+    const filePath = path.join(__dirname, "../../", file.filePath);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    await prisma.uploadedFile.delete({
+      where: {
+        id: fileId,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Xóa file thành công",
+      deletedFile: {
+        id: file.id,
+        originalName: file.originalName,
+        fileName: file.fileName,
+        fileUrl: file.fileUrl,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi server khi xóa file",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   uploadSingleFile,
   uploadMultipleFiles,
   getUploadedFiles,
   getUploadedFileById,
+  deleteUploadedFile,
 };
