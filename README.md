@@ -463,3 +463,134 @@ Thư mục này không nên push lên GitHub. Trong `.gitignore` nên có:
 ```gitignore
 uploads
 ```
+
+---
+
+## API Base URL
+
+Backend API chạy tại:
+
+```txt
+http://localhost:5000/api
+```
+
+Frontend gọi backend thông qua biến môi trường:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+---
+
+## Main API Endpoints
+
+### Auth API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/auth/register` | Đăng ký tài khoản và gửi email xác thực |
+| POST | `/auth/login` | Đăng nhập |
+| GET | `/auth/me` | Lấy thông tin user hiện tại |
+| POST | `/auth/refresh-token` | Cấp access token mới |
+| POST | `/auth/logout` | Đăng xuất |
+| PATCH | `/auth/change-password` | Đổi mật khẩu |
+| POST | `/auth/forgot-password` | Gửi email đặt lại mật khẩu |
+| POST | `/auth/reset-password` | Đặt lại mật khẩu |
+| GET | `/auth/verify-email?token=...` | Xác thực email |
+| POST | `/auth/resend-verification-email` | Gửi lại email xác thực |
+| GET | `/auth/google` | Đăng nhập Google |
+| GET | `/auth/google/callback` | Google OAuth callback |
+| GET | `/auth/facebook` | Đăng nhập Facebook |
+| GET | `/auth/facebook/callback` | Facebook OAuth callback |
+
+### User Profile API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/users/me` | Xem hồ sơ cá nhân |
+| PATCH | `/users/me` | Cập nhật hồ sơ cá nhân |
+| PATCH | `/users/me/avatar` | Upload / cập nhật avatar |
+| DELETE | `/users/me/avatar` | Xóa avatar |
+
+### Admin User API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/admin/users` | Admin xem danh sách user |
+| GET | `/admin/users/:id` | Admin xem chi tiết user |
+| PATCH | `/admin/users/:id/role` | Admin đổi role user |
+| PATCH | `/admin/users/:id/status` | Admin khóa / mở khóa user |
+
+### Upload File API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/uploads/single` | Upload 1 file |
+| POST | `/uploads/multiple` | Upload nhiều file |
+| GET | `/uploads` | Lấy danh sách file |
+| GET | `/uploads/:id` | Xem chi tiết file |
+| DELETE | `/uploads/:id` | Xóa file |
+
+### Notification API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/notifications` | User xem danh sách thông báo |
+| GET | `/notifications/unread-count` | Đếm thông báo chưa đọc |
+| PATCH | `/notifications/:id/read` | Đánh dấu 1 thông báo đã đọc |
+| PATCH | `/notifications/read-all` | Đánh dấu tất cả thông báo đã đọc |
+
+### Admin Notification API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/admin/notifications/user/:id` | Admin gửi thông báo cho 1 user |
+| POST | `/admin/notifications/broadcast` | Admin gửi thông báo hàng loạt |
+
+### Activity Log API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/admin/activity-logs` | Admin xem danh sách activity log |
+| GET | `/admin/activity-logs/:id` | Admin xem chi tiết activity log |
+
+### Admin Dashboard API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/admin/dashboard/overview` | Thống kê tổng quan hệ thống |
+| GET | `/admin/dashboard/users` | Thống kê người dùng |
+| GET | `/admin/dashboard/files` | Thống kê file upload |
+| GET | `/admin/dashboard/system` | Thống kê notification và activity log |
+| GET | `/admin/dashboard/recent-activities` | Hoạt động gần đây |
+
+### Email API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/emails/test` | Admin gửi email test |
+
+### Health API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/health` | Kiểm tra trạng thái server và database |
+
+---
+
+## Authentication Header
+
+Các API yêu cầu đăng nhập cần gửi header:
+
+```txt
+Authorization: Bearer your_access_token
+```
+
+Ví dụ:
+
+```bash
+GET /api/users/me
+Authorization: Bearer your_access_token
+```
+
+Các API admin yêu cầu user có role: `ADMIN`
