@@ -1520,7 +1520,392 @@ Thiết kế API của hệ thống có các đặc điểm sau:
 
 # 12. THIẾT KẾ GIAO DIỆN
 
-*(Nội dung sẽ được điền sau)*
+Giao diện hệ thống được xây dựng bằng React, Vite và Tailwind CSS. Mục tiêu của giao diện là đơn giản, dễ sử dụng, dễ mở rộng và phù hợp với một hệ thống quản trị người dùng.
+
+Frontend được chia thành các nhóm giao diện chính:
+
+- Giao diện xác thực người dùng.
+- Giao diện người dùng sau khi đăng nhập.
+- Giao diện quản trị dành cho admin.
+- Giao diện thông báo.
+- Giao diện quản lý activity log.
+
+Hệ thống sử dụng React Router để điều hướng giữa các trang. Các trang yêu cầu đăng nhập được bảo vệ bằng ProtectedRoute. Các trang quản trị được bảo vệ bằng AdminRoute.
+
+## 12.1. Bố cục tổng thể giao diện
+
+Frontend được thiết kế theo hai layout chính:
+
+### AuthLayout
+
+AuthLayout được sử dụng cho các trang chưa đăng nhập như:
+
+- Login
+- Register
+- Forgot Password
+- Reset Password
+- Verify Email
+
+Đặc điểm giao diện:
+
+- Nội dung được căn giữa màn hình.
+- Form được đặt trong card nền trắng.
+- Giao diện đơn giản, tập trung vào thao tác nhập liệu.
+- Có hiển thị thông báo lỗi và thông báo thành công.
+
+### AppLayout
+
+AppLayout được sử dụng cho các trang sau khi đăng nhập như:
+
+- Profile
+- Notifications
+- Admin Dashboard
+- Admin Users
+- Admin Activity Logs
+
+Đặc điểm giao diện:
+
+- Có header điều hướng phía trên.
+- Có menu Profile, Notifications, Admin và Logout.
+- Nếu user không phải ADMIN thì không hiển thị menu Admin.
+- Nội dung chính được hiển thị trong card lớn.
+- Phù hợp để mở rộng thêm các module nghiệp vụ sau này.
+
+## 12.2. Giao diện đăng nhập
+
+Trang đăng nhập cho phép người dùng nhập email và mật khẩu để truy cập hệ thống.
+
+### Thành phần giao diện
+
+- Tiêu đề trang đăng nhập.
+- Input email.
+- Input password.
+- Link quên mật khẩu.
+- Nút đăng nhập.
+- Nút đăng nhập Google.
+- Nút đăng nhập Facebook.
+- Link chuyển sang trang đăng ký.
+- Khu vực hiển thị lỗi nếu đăng nhập thất bại.
+
+### Luồng xử lý
+
+1. Người dùng nhập email và mật khẩu.
+2. Frontend kiểm tra dữ liệu không được bỏ trống.
+3. Frontend gọi API đăng nhập.
+4. Nếu thành công, hệ thống lưu accessToken và refreshToken.
+5. Nếu user là ADMIN, chuyển đến trang Admin Dashboard.
+6. Nếu user là USER, chuyển đến trang Profile.
+7. Nếu thất bại, hiển thị lỗi từ backend.
+
+## 12.3. Giao diện đăng ký và xác thực email
+
+### Trang đăng ký
+
+Trang đăng ký cho phép người dùng tạo tài khoản mới bằng họ tên, email và mật khẩu.
+
+Thành phần giao diện:
+
+- Input họ tên.
+- Input email.
+- Input password.
+- Nút đăng ký.
+- Link chuyển sang trang đăng nhập.
+- Link chuyển sang trang xác thực email.
+- Thông báo lỗi.
+- Thông báo đăng ký thành công.
+
+Sau khi đăng ký thành công, người dùng cần kiểm tra email để xác thực tài khoản.
+
+### Trang xác thực email
+
+Trang xác thực email có hai chức năng:
+
+- Xác thực tài khoản bằng token trên URL.
+- Gửi lại email xác thực nếu người dùng chưa nhận được email.
+
+Thành phần giao diện:
+
+- Thông báo trạng thái xác thực.
+- Input email để gửi lại email xác thực.
+- Nút gửi lại email xác thực.
+- Link chuyển sang trang đăng nhập.
+
+### Luồng xử lý
+
+1. Người dùng đăng ký tài khoản.
+2. Backend gửi email xác thực.
+3. Người dùng bấm link trong email.
+4. Frontend mở trang verify email kèm token.
+5. Frontend gọi API xác thực email.
+6. Nếu thành công, hiển thị thông báo và cho phép chuyển đến trang đăng nhập.
+
+## 12.4. Giao diện quên mật khẩu và đặt lại mật khẩu
+
+### Trang quên mật khẩu
+
+Trang quên mật khẩu cho phép người dùng nhập email để nhận link đặt lại mật khẩu.
+
+Thành phần giao diện:
+
+- Input email.
+- Nút gửi link đặt lại mật khẩu.
+- Thông báo lỗi.
+- Thông báo thành công.
+- Link quay lại trang đăng nhập.
+
+### Trang đặt lại mật khẩu
+
+Trang đặt lại mật khẩu cho phép người dùng nhập mật khẩu mới sau khi bấm link trong email.
+
+Thành phần giao diện:
+
+- Input mật khẩu mới.
+- Input xác nhận mật khẩu mới.
+- Nút đặt lại mật khẩu.
+- Thông báo token không hợp lệ nếu thiếu token.
+- Thông báo lỗi nếu mật khẩu không khớp.
+- Thông báo thành công sau khi reset.
+
+### Luồng xử lý
+
+1. Người dùng nhập email ở trang quên mật khẩu.
+2. Backend gửi email chứa link reset password.
+3. Người dùng bấm link trong email.
+4. Frontend mở trang reset password kèm token.
+5. Người dùng nhập mật khẩu mới.
+6. Frontend gọi API reset password.
+7. Nếu thành công, người dùng đăng nhập lại bằng mật khẩu mới.
+
+## 12.5. Giao diện hồ sơ cá nhân
+
+Trang Profile cho phép người dùng xem và cập nhật thông tin cá nhân.
+
+### Thành phần giao diện
+
+- Avatar người dùng.
+- Nút chọn ảnh avatar.
+- Nút lưu avatar.
+- Nút xóa avatar.
+- Họ tên người dùng.
+- Email.
+- Role.
+- Status.
+- Trạng thái verified.
+- Form cập nhật họ tên, số điện thoại và địa chỉ.
+- Thông tin provider, lastLoginAt, createdAt, updatedAt.
+- Nút tải lại thông tin.
+- Thông báo lỗi và thành công.
+
+### Luồng xử lý cập nhật profile
+
+1. User mở trang Profile.
+2. Frontend lấy thông tin user từ AuthContext.
+3. User chỉnh sửa họ tên, số điện thoại hoặc địa chỉ.
+4. Frontend gọi API cập nhật profile.
+5. Backend cập nhật thông tin.
+6. Frontend cập nhật lại AuthContext.
+7. Giao diện hiển thị thông báo thành công.
+
+### Luồng xử lý upload avatar
+
+1. User chọn ảnh avatar.
+2. Frontend hiển thị preview ảnh.
+3. User bấm lưu avatar.
+4. Frontend gửi FormData lên backend.
+5. Backend lưu file và cập nhật avatar URL.
+6. Frontend hiển thị avatar mới.
+
+## 12.6. Giao diện thông báo
+
+Trang Notifications cho phép người dùng xem và quản lý thông báo cá nhân.
+
+### Thành phần giao diện
+
+- Tiêu đề trang thông báo.
+- Số lượng thông báo chưa đọc.
+- Nút tải lại danh sách thông báo.
+- Nút đánh dấu tất cả đã đọc.
+- Bộ lọc trạng thái: tất cả, đã đọc, chưa đọc.
+- Bộ lọc loại thông báo.
+- Danh sách notification.
+- Badge hiển thị loại notification.
+- Badge hiển thị thông báo mới.
+- Nút đánh dấu một thông báo đã đọc.
+- Phân trang.
+
+### Luồng xử lý
+
+1. User mở trang Notifications.
+2. Frontend gọi API lấy danh sách notification.
+3. Frontend gọi API lấy số notification chưa đọc.
+4. User có thể lọc thông báo theo trạng thái hoặc type.
+5. User có thể đánh dấu một notification đã đọc.
+6. User có thể đánh dấu tất cả notification đã đọc.
+7. Giao diện cập nhật lại unread count.
+
+## 12.7. Giao diện Admin Dashboard
+
+Trang Admin Dashboard chỉ dành cho tài khoản có role ADMIN. Trang này hiển thị các số liệu thống kê tổng quan của hệ thống.
+
+### Thành phần giao diện
+
+- Card tổng số người dùng.
+- Card số user đang hoạt động.
+- Card số user bị khóa.
+- Card tổng file upload.
+- Card tổng notification.
+- Card tổng activity log.
+- Card số lượt login hôm nay.
+- Thống kê user theo role.
+- Thống kê user theo provider.
+- Thống kê user theo status.
+- Thống kê file theo type.
+- Thống kê notification theo type.
+- Thống kê activity log theo method.
+- Danh sách user mới gần đây.
+- Danh sách activity log gần đây.
+- Nút tải lại dashboard.
+
+### Luồng xử lý
+
+1. Admin mở trang Dashboard.
+2. Frontend kiểm tra role ADMIN.
+3. Frontend gọi các API dashboard.
+4. Backend tổng hợp số liệu từ database.
+5. Frontend hiển thị dữ liệu dưới dạng card và danh sách.
+6. Admin có thể bấm tải lại để cập nhật số liệu.
+
+## 12.8. Giao diện quản lý người dùng
+
+Trang Admin Users cho phép quản trị viên xem và quản lý danh sách người dùng.
+
+### Thành phần giao diện
+
+- Ô tìm kiếm theo tên, email hoặc số điện thoại.
+- Bộ lọc role.
+- Bộ lọc status.
+- Bộ lọc provider.
+- Bảng danh sách user.
+- Avatar hoặc ký tự đại diện.
+- Tên, email, số điện thoại.
+- Badge role.
+- Badge status.
+- Badge provider.
+- Trạng thái verified.
+- Ngày tạo tài khoản.
+- Nút đổi role.
+- Nút khóa hoặc mở khóa user.
+- Phân trang.
+- Thông báo lỗi và thành công.
+
+### Luồng xử lý
+
+1. Admin mở trang Users.
+2. Frontend gọi API danh sách user.
+3. Admin có thể tìm kiếm hoặc lọc user.
+4. Admin có thể đổi role user.
+5. Admin có thể khóa hoặc mở khóa user.
+6. Backend xử lý, gửi email, tạo notification và ghi activity log.
+7. Frontend cập nhật lại danh sách user.
+
+## 12.9. Giao diện Activity Logs
+
+Trang Activity Logs cho phép admin theo dõi các hành động quan trọng trong hệ thống.
+
+### Thành phần giao diện
+
+- Ô tìm kiếm theo action, details hoặc path.
+- Bộ lọc userId.
+- Bộ lọc action.
+- Bộ lọc method.
+- Bảng activity logs.
+- Badge action.
+- Badge method.
+- Path API.
+- User thực hiện.
+- Details.
+- Thời gian tạo log.
+- Nút xem chi tiết.
+- Modal chi tiết activity log.
+- Phân trang.
+
+### Modal chi tiết activity log
+
+Modal chi tiết hiển thị:
+
+- ID log.
+- Action.
+- Method.
+- Path.
+- IP.
+- User Agent.
+- Details.
+- Thời gian tạo.
+- Thông tin user thực hiện hành động.
+
+### Luồng xử lý
+
+1. Admin mở trang Activity Logs.
+2. Frontend gọi API danh sách activity log.
+3. Admin có thể tìm kiếm hoặc lọc log.
+4. Admin bấm xem chi tiết.
+5. Frontend gọi API chi tiết log.
+6. Modal hiển thị đầy đủ thông tin log.
+
+## 12.10. Thiết kế bảo vệ route trên Frontend
+
+Frontend sử dụng hai cơ chế bảo vệ route:
+
+### ProtectedRoute
+
+ProtectedRoute dùng để bảo vệ các trang yêu cầu đăng nhập.
+
+Các trang được bảo vệ:
+
+- Profile
+- Notifications
+- Admin pages
+
+Nếu user chưa đăng nhập, hệ thống tự động chuyển về trang Login.
+
+### AdminRoute
+
+AdminRoute dùng để bảo vệ các trang chỉ dành cho ADMIN.
+
+Các trang được bảo vệ:
+
+- Admin Dashboard
+- Admin Users
+- Admin Activity Logs
+
+Nếu user đã đăng nhập nhưng không phải ADMIN, hệ thống tự động chuyển về trang Profile.
+
+### AuthContext
+
+AuthContext dùng để lưu thông tin user hiện tại, trạng thái đăng nhập và các hàm xử lý như login, logout, loadCurrentUser.
+
+Nhờ AuthContext, các component trong hệ thống có thể biết:
+
+- User đã đăng nhập chưa.
+- User hiện tại là ai.
+- User có phải ADMIN không.
+- Khi logout cần xóa token và cập nhật trạng thái giao diện.
+
+## 12.11. Nhận xét thiết kế giao diện
+
+Giao diện của hệ thống được thiết kế theo hướng đơn giản, rõ ràng và dễ sử dụng. Các chức năng được chia thành từng trang riêng biệt, giúp người dùng dễ thao tác và quản trị viên dễ theo dõi hệ thống.
+
+Ưu điểm của thiết kế giao diện:
+
+- Bố cục rõ ràng, dễ hiểu.
+- Có phân tách layout cho auth pages và app pages.
+- Có route bảo vệ cho user và admin.
+- Các form có kiểm tra dữ liệu cơ bản.
+- Có thông báo lỗi và thông báo thành công.
+- Có loading state khi gọi API.
+- Các bảng dữ liệu có tìm kiếm, lọc và phân trang.
+- Giao diện admin dashboard giúp dễ quan sát tình trạng hệ thống.
+- Thiết kế có thể mở rộng thêm các module nghiệp vụ trong tương lai.
 
 ---
 
