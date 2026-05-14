@@ -1911,7 +1911,321 @@ Giao diện của hệ thống được thiết kế theo hướng đơn giản,
 
 # 13. BẢO MẬT HỆ THỐNG
 
-*(Nội dung sẽ được điền sau)*
+Bảo mật là một trong những yếu tố quan trọng nhất của hệ thống, đặc biệt đối với các chức năng liên quan đến tài khoản người dùng, đăng nhập, phân quyền, đổi mật khẩu và quản trị hệ thống.
+
+Hệ thống Full-stack Auth Core được thiết kế với nhiều cơ chế bảo mật cơ bản nhằm bảo vệ thông tin người dùng, kiểm soát quyền truy cập và ghi lại các hành động quan trọng. Các cơ chế bảo mật chính bao gồm mã hóa mật khẩu, xác thực bằng JWT, quản lý refresh token, xác thực email, reset password bằng token, phân quyền người dùng, kiểm tra trạng thái tài khoản, kiểm soát upload file và ghi activity log.
+
+## 13.1. Mã hóa mật khẩu bằng bcrypt
+
+Mật khẩu của người dùng không được lưu trực tiếp dưới dạng văn bản trong cơ sở dữ liệu. Trước khi lưu, hệ thống sử dụng bcrypt để hash mật khẩu.
+
+Quy trình xử lý mật khẩu:
+
+```
+Người dùng nhập mật khẩu
+        ↓
+Backend sử dụng bcrypt để hash mật khẩu
+        ↓
+Mật khẩu đã hash được lưu vào database
+        ↓
+Khi đăng nhập, bcrypt so sánh mật khẩu nhập vào với mật khẩu đã hash
+```
+
+**Ưu điểm:**
+
+- Tránh lộ mật khẩu thật nếu database bị truy cập trái phép.
+- Mỗi mật khẩu được hash thành chuỗi khó khôi phục ngược.
+- Tăng mức độ an toàn cho tài khoản người dùng.
+
+**Ví dụ:**
+
+```
+Password thật: 123456
+Password lưu trong database: $2a$10$...
+```
+
+## 13.2. Xác thực bằng JWT
+
+Hệ thống sử dụng JSON Web Token để xác thực người dùng sau khi đăng nhập thành công.
+
+Sau khi đăng nhập, Backend cấp cho người dùng:
+
+- Access token
+- Refresh token
+
+**Access token**
+
+Access token được dùng để gọi các API yêu cầu đăng nhập. Frontend gửi token này trong header của request.
+
+```
+Authorization: Bearer access_token
+```
+
+Access token có thời hạn ngắn để giảm rủi ro nếu token bị lộ.
+
+**Refresh token**
+
+Refresh token dùng để cấp lại access token khi access token hết hạn. Refresh token có thời hạn dài hơn access token và được lưu trong database để có thể thu hồi khi cần.
+
+**Luồng xác thực JWT**
+
+```
+User đăng nhập thành công
+        ↓
+Backend tạo accessToken và refreshToken
+        ↓
+Frontend lưu token
+        ↓
+Frontend gọi API kèm Authorization header
+        ↓
+Backend middleware kiểm tra token
+        ↓
+Nếu token hợp lệ, cho phép truy cập API
+```
+
+Cơ chế này giúp hệ thống bảo vệ các API riêng tư và xác định user đang thực hiện request.
+
+## 13.3. Quản lý và thu hồi refresh token
+
+Refresh token được lưu trong bảng RefreshToken. Việc lưu refresh token trong database giúp hệ thống chủ động thu hồi phiên đăng nhập khi cần.
+
+Refresh token sẽ bị thu hồi trong các trường hợp:
+
+- Người dùng logout.
+- Người dùng đổi mật khẩu.
+- Người dùng reset mật khẩu.
+- Admin khóa tài khoản người dùng.
+- Admin đổi role người dùng.
+
+Khi refresh token bị thu hồi, trường `revokedAt` sẽ được cập nhật. Các token đã bị thu hồi sẽ không còn hợp lệ để cấp access token mới.
+
+**Ý nghĩa:**
+
+- Tăng khả năng kiểm soát phiên đăng nhập.
+- Đảm bảo user phải đăng nhập lại sau các thay đổi quan trọng.
+- Giảm rủi ro khi token cũ bị lộ.
+
+## 13.4. Xác thực email
+
+Đối với tài khoản đăng ký bằng email và mật khẩu, hệ thống yêu cầu người dùng xác thực email trước khi đăng nhập.
+
+Khi đăng ký, hệ thống tạo:
+
+- verifyEmailToken
+- verifyEmailExpires
+
+Sau đó gửi link xác thực đến email của người dùng.
+
+```
+User đăng ký
+        ↓
+Backend tạo verifyEmailToken
+        ↓
+Backend gửi email xác thực
+        ↓
+User bấm link xác thực
+        ↓
+Backend kiểm tra token
+        ↓
+Cập nhật isVerified = true
+```
+
+Nếu tài khoản chưa xác thực email, hệ thống không cho phép đăng nhập.
+
+**Ý nghĩa:**
+
+- Đảm bảo email đăng ký là email thật.
+- Giảm tình trạng tài khoản ảo.
+- Tăng độ tin cậy cho tài khoản người dùng.
+
+## 13.5. Bảo mật chức năng quên mật khẩu
+
+Chức năng quên mật khẩu được thiết kế để không trả reset token trực tiếp trong response. Token chỉ được gửi qua email của người dùng.
+
+**Quy trình:**
+
+```
+User nhập email quên mật khẩu
+        ↓
+Backend tạo resetPasswordToken
+        ↓
+Backend lưu token và thời hạn
+        ↓
+Backend gửi link reset qua email
+        ↓
+User mở link và nhập mật khẩu mới
+        ↓
+Backend kiểm tra token
+        ↓
+Backend hash mật khẩu mới
+        ↓
+Backend cập nhật password
+        ↓
+Backend xóa reset token
+        ↓
+Backend thu hồi refresh token cũ
+```
+
+Sau khi reset mật khẩu thành công, hệ thống gửi email cảnh báo bảo mật cho người dùng.
+
+**Ý nghĩa:**
+
+- Token reset chỉ được gửi qua email.
+- Token có thời hạn sử dụng.
+- Token bị xóa sau khi sử dụng.
+- Các phiên đăng nhập cũ bị thu hồi sau khi reset mật khẩu.
+
+## 13.6. Phân quyền bằng Role-based Access Control
+
+Hệ thống sử dụng role để kiểm soát quyền truy cập.
+
+**Các role chính:**
+
+```
+USER
+ADMIN
+```
+
+**USER**
+
+USER chỉ được truy cập các chức năng cá nhân như profile, notification, upload file cá nhân và đổi mật khẩu.
+
+**ADMIN**
+
+ADMIN được truy cập các chức năng quản trị như quản lý user, gửi notification, xem activity log và xem dashboard.
+
+Các API admin được bảo vệ bằng middleware kiểm tra role. Nếu user không có role ADMIN, hệ thống từ chối truy cập.
+
+**Ý nghĩa:**
+
+- Ngăn user thường truy cập chức năng quản trị.
+- Phân tách rõ quyền hạn giữa người dùng và quản trị viên.
+- Dễ mở rộng thêm các role mới trong tương lai.
+
+## 13.7. Kiểm tra trạng thái tài khoản
+
+Mỗi tài khoản có trạng thái:
+
+```
+ACTIVE
+BLOCKED
+```
+
+Nếu tài khoản có status là BLOCKED, user sẽ không được phép đăng nhập.
+
+**Khi admin khóa tài khoản:**
+
+1. Backend cập nhật status thành BLOCKED.
+2. Backend thu hồi refresh token của user.
+3. Backend gửi email thông báo.
+4. Backend tạo notification.
+5. Backend ghi activity log.
+
+**Khi admin mở khóa tài khoản:**
+
+1. Backend cập nhật status thành ACTIVE.
+2. Backend gửi email thông báo.
+3. Backend tạo notification.
+4. Backend ghi activity log.
+
+Cơ chế này giúp admin kiểm soát tài khoản vi phạm hoặc tài khoản cần tạm ngưng sử dụng.
+
+## 13.8. Kiểm soát upload file
+
+Hệ thống sử dụng Multer để xử lý upload file. Để đảm bảo an toàn, upload file cần được kiểm soát theo các yếu tố:
+
+- Kiểm tra field upload.
+- Kiểm tra loại file.
+- Kiểm tra dung lượng file.
+- Lưu metadata file vào database.
+- Phân quyền người sở hữu file.
+- User thường chỉ được quản lý file của chính mình.
+- Admin có thể quản lý toàn bộ file.
+
+Đối với avatar, hệ thống chỉ cho phép upload các định dạng ảnh như JPG, PNG, JPEG hoặc WEBP.
+
+**Ý nghĩa:**
+
+- Tránh upload file sai định dạng.
+- Giới hạn dung lượng để tránh lạm dụng tài nguyên.
+- Đảm bảo user không thể xóa file của user khác.
+
+## 13.9. Activity Log và truy vết hành động
+
+Hệ thống ghi lại các hành động quan trọng vào bảng ActivityLog.
+
+**Các thông tin được lưu gồm:**
+
+- User thực hiện hành động.
+- Tên hành động.
+- HTTP method.
+- API path.
+- IP address.
+- User agent.
+- Mô tả chi tiết.
+- Thời gian thực hiện.
+
+**Các hành động được ghi log:**
+
+```
+LOGIN
+LOGOUT
+CHANGE_PASSWORD
+RESET_PASSWORD
+UPLOAD_FILE
+UPLOAD_MULTIPLE_FILES
+DELETE_FILE
+UPDATE_USER_ROLE
+UPDATE_USER_STATUS
+SEND_NOTIFICATION_TO_USER
+BROADCAST_NOTIFICATION
+```
+
+**Ý nghĩa:**
+
+- Giúp admin theo dõi hoạt động hệ thống.
+- Hỗ trợ truy vết khi có lỗi hoặc hành vi bất thường.
+- Tăng tính minh bạch trong các thao tác quản trị.
+
+## 13.10. Bảo mật phía Frontend
+
+Frontend sử dụng AuthContext, ProtectedRoute và AdminRoute để kiểm soát điều hướng giao diện.
+
+**ProtectedRoute**
+
+ProtectedRoute bảo vệ các trang yêu cầu đăng nhập. Nếu user chưa đăng nhập, hệ thống chuyển về trang Login.
+
+**AdminRoute**
+
+AdminRoute bảo vệ các trang dành cho admin. Nếu user không phải ADMIN, hệ thống chuyển về trang Profile.
+
+**Axios Interceptor**
+
+Axios Client tự động gắn access token vào header request:
+
+```
+Authorization: Bearer access_token
+```
+
+Điều này giúp các API cần đăng nhập được gọi nhất quán và giảm lỗi khi lập trình.
+
+**Lưu ý:** Việc bảo vệ route ở Frontend chỉ giúp cải thiện trải nghiệm người dùng. Bảo mật thực sự vẫn phải được kiểm tra ở Backend thông qua middleware xác thực và phân quyền.
+
+## 13.11. Nhận xét về bảo mật hệ thống
+
+Hệ thống đã áp dụng nhiều cơ chế bảo mật quan trọng như hash password, JWT, refresh token, email verification, reset password token, role-based access control, account status check, upload validation và activity log.
+
+Các cơ chế này giúp hệ thống đảm bảo:
+
+- Mật khẩu không bị lưu trực tiếp.
+- API riêng tư được bảo vệ bằng token.
+- API admin được bảo vệ bằng role.
+- Token có thể bị thu hồi khi cần.
+- Tài khoản chưa xác thực hoặc bị khóa không thể đăng nhập.
+- Các hành động quan trọng được ghi log.
+- User thường không thể truy cập dữ liệu hoặc chức năng ngoài quyền hạn.
+
+Trong tương lai, hệ thống có thể nâng cấp thêm các cơ chế bảo mật như rate limiting, refresh token rotation, xác thực hai lớp, giới hạn số lần đăng nhập sai và kiểm tra file upload nâng cao.
 
 ---
 
