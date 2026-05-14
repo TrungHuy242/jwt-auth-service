@@ -69,10 +69,10 @@ const register = async (req, res) => {
             },
         });
 
-        // 6. Gửi email xác thực
+        // 6. Gửi email xác thực (non-blocking)
         const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
 
-        await sendEmail({
+        sendEmail({
             to: newUser.email,
             subject: "Xác thực tài khoản - JWT Auth Service",
             text: `Vui lòng truy cập link sau để xác thực tài khoản: ${verifyUrl}`,
@@ -80,7 +80,7 @@ const register = async (req, res) => {
                 name: newUser.name,
                 verifyUrl,
             }),
-        });
+        }).catch((err) => console.error("Failed to send verification email:", err));
 
         // 7. Trả về kết quả
         return res.status(201).json({
@@ -414,7 +414,7 @@ const changePassword = async (req, res) => {
             },
         });
 
-        await sendEmail({
+        sendEmail({
             to: user.email,
             subject: "Thông báo đổi mật khẩu - JWT Auth Service",
             text: "Mật khẩu tài khoản của bạn vừa được thay đổi.",
@@ -422,7 +422,7 @@ const changePassword = async (req, res) => {
                 name: user.name,
                 action: "Đổi mật khẩu tài khoản",
             }),
-        });
+        }).catch((err) => console.error("Failed to send password change email:", err));
 
         const requestInfo = getRequestInfo(req);
 
@@ -496,7 +496,7 @@ const forgotPassword = async (req, res) => {
 
         const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
 
-        await sendEmail({
+        sendEmail({
             to: user.email,
             subject: "Đặt lại mật khẩu - JWT Auth Service",
             text: `Vui lòng truy cập link sau để đặt lại mật khẩu: ${resetUrl}`,
@@ -504,7 +504,7 @@ const forgotPassword = async (req, res) => {
                 name: user.name,
                 resetUrl,
             }),
-        });
+        }).catch((err) => console.error("Failed to send reset email:", err));
 
         return res.status(200).json({
             message: "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu",
@@ -572,7 +572,7 @@ const resetPassword = async (req, res) => {
         },
       });
 
-      await sendEmail({
+      sendEmail({
         to: user.email,
         subject: "Thông báo đặt lại mật khẩu - JWT Auth Service",
         text: "Mật khẩu tài khoản của bạn vừa được đặt lại.",
@@ -580,7 +580,7 @@ const resetPassword = async (req, res) => {
           name: user.name,
           action: "Đặt lại mật khẩu tài khoản",
         }),
-      });
+      }).catch((err) => console.error("Failed to send reset password email:", err));
 
       const requestInfo = getRequestInfo(req);
 
@@ -708,7 +708,7 @@ const resendVerificationEmail = async (req, res) => {
 
     const verifyUrl = `${process.env.CLIENT_URL}/verify-email?token=${verifyToken}`;
 
-    await sendEmail({
+    sendEmail({
       to: user.email,
       subject: "Gửi lại email xác thực - JWT Auth Service",
       text: `Vui lòng truy cập link sau để xác thực tài khoản: ${verifyUrl}`,
@@ -716,7 +716,7 @@ const resendVerificationEmail = async (req, res) => {
         name: user.name,
         verifyUrl,
       }),
-    });
+    }).catch((err) => console.error("Failed to resend verification email:", err));
 
     return res.status(200).json({
       message: "Nếu email tồn tại và chưa xác thực, hệ thống sẽ gửi lại email xác thực",

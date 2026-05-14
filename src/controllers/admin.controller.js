@@ -364,7 +364,7 @@ const updateUserStatus = async (req, res) => {
             });
         }
 
-        await sendEmail({
+        sendEmail({
             to: updatedUser.email,
             subject:
                 status === "BLOCKED"
@@ -378,7 +378,7 @@ const updateUserStatus = async (req, res) => {
                 name: updatedUser.name,
                 status,
             }),
-        });
+        }).catch((err) => console.error("Failed to send account status email:", err));
 
         await createNotification({
             userId,
