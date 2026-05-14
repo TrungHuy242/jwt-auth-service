@@ -1123,7 +1123,398 @@ Thiết kế cơ sở dữ liệu của hệ thống có các ưu điểm sau:
 
 # 11. THIẾT KẾ API
 
-*(Nội dung sẽ được điền sau)*
+Hệ thống Backend được thiết kế theo kiến trúc RESTful API. Frontend giao tiếp với Backend thông qua các endpoint API. Mỗi API đảm nhận một chức năng cụ thể như xác thực người dùng, quản lý hồ sơ, upload file, notification, activity log và dashboard quản trị.
+
+Base URL của Backend API:
+
+```
+http://localhost:5000/api
+```
+
+Các API cần đăng nhập sẽ yêu cầu gửi access token trong header:
+
+```
+Authorization: Bearer access_token
+```
+
+Các API dành cho quản trị viên yêu cầu người dùng có role là ADMIN.
+
+## 11.1. Auth API
+
+Nhóm API Auth dùng để xử lý đăng ký, đăng nhập, xác thực email, quên mật khẩu, reset mật khẩu và quản lý phiên đăng nhập.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| POST | `/auth/register` | Đăng ký tài khoản | Public |
+| POST | `/auth/login` | Đăng nhập | Public |
+| GET | `/auth/me` | Lấy thông tin user hiện tại | User |
+| POST | `/auth/refresh-token` | Cấp access token mới | Public |
+| POST | `/auth/logout` | Đăng xuất | User |
+| PATCH | `/auth/change-password` | Đổi mật khẩu | User |
+| POST | `/auth/forgot-password` | Gửi email quên mật khẩu | Public |
+| POST | `/auth/reset-password` | Đặt lại mật khẩu | Public |
+| GET | `/auth/verify-email?token=...` | Xác thực email | Public |
+| POST | `/auth/resend-verification-email` | Gửi lại email xác thực | Public |
+| GET | `/auth/google` | Đăng nhập Google | Public |
+| GET | `/auth/google/callback` | Google OAuth callback | Public |
+| GET | `/auth/facebook` | Đăng nhập Facebook | Public |
+| GET | `/auth/facebook/callback` | Facebook OAuth callback | Public |
+
+### Ví dụ API đăng nhập
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+Body:
+{
+  "email": "user@gmail.com",
+  "password": "123456"
+}
+
+Response:
+{
+  "message": "Đăng nhập thành công",
+  "accessToken": "...",
+  "refreshToken": "...",
+  "user": {
+    "id": 1,
+    "name": "User",
+    "email": "user@gmail.com",
+    "role": "USER"
+  }
+}
+```
+
+## 11.2. User Profile API
+
+Nhóm API User Profile dùng để quản lý thông tin cá nhân của người dùng.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| GET | `/users/me` | Xem hồ sơ cá nhân | User |
+| PATCH | `/users/me` | Cập nhật hồ sơ cá nhân | User |
+| PATCH | `/users/me/avatar` | Upload hoặc cập nhật avatar | User |
+| DELETE | `/users/me/avatar` | Xóa avatar | User |
+
+### Ví dụ cập nhật hồ sơ
+
+```http
+PATCH /api/users/me
+Authorization: Bearer access_token
+Content-Type: application/json
+
+Body:
+{
+  "name": "Nguyễn Văn A",
+  "phone": "0123456789",
+  "address": "Đà Nẵng"
+}
+```
+
+## 11.3. Admin User API
+
+Nhóm API Admin User dùng để quản trị viên quản lý người dùng trong hệ thống.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| GET | `/admin/users` | Xem danh sách user | Admin |
+| GET | `/admin/users/:id` | Xem chi tiết user | Admin |
+| PATCH | `/admin/users/:id/role` | Đổi role user | Admin |
+| PATCH | `/admin/users/:id/status` | Khóa hoặc mở khóa user | Admin |
+
+### Query params danh sách user
+
+```
+page
+limit
+search
+role
+status
+provider
+```
+
+### Ví dụ đổi role user
+
+```http
+PATCH /api/admin/users/2/role
+Authorization: Bearer admin_access_token
+Content-Type: application/json
+
+Body:
+{
+  "role": "ADMIN"
+}
+```
+
+### Ví dụ khóa user
+
+```http
+PATCH /api/admin/users/2/status
+Authorization: Bearer admin_access_token
+Content-Type: application/json
+
+Body:
+{
+  "status": "BLOCKED"
+}
+```
+
+## 11.4. Upload File API
+
+Nhóm API Upload dùng để upload và quản lý file trong hệ thống.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| POST | `/uploads/single` | Upload một file | User |
+| POST | `/uploads/multiple` | Upload nhiều file | User |
+| GET | `/uploads` | Xem danh sách file | User |
+| GET | `/uploads/:id` | Xem chi tiết file | User |
+| DELETE | `/uploads/:id` | Xóa file | User |
+
+### Ghi chú phân quyền
+
+- USER chỉ xem và xóa file của chính mình.
+- ADMIN có thể xem và xóa toàn bộ file.
+
+### Ví dụ upload một file
+
+```http
+POST /api/uploads/single
+Authorization: Bearer access_token
+Content-Type: multipart/form-data
+
+Form-data:
+file: selected_file
+folder: documents
+```
+
+### Ví dụ upload nhiều file
+
+```http
+POST /api/uploads/multiple
+Authorization: Bearer access_token
+Content-Type: multipart/form-data
+
+Form-data:
+files: file_1
+files: file_2
+folder: products
+```
+
+## 11.5. Email API
+
+Nhóm API Email dùng để kiểm tra chức năng gửi email của hệ thống.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| POST | `/emails/test` | Admin gửi email test | Admin |
+
+### Ví dụ gửi email test
+
+```http
+POST /api/emails/test
+Authorization: Bearer admin_access_token
+Content-Type: application/json
+
+Body:
+{
+  "to": "receiver@gmail.com"
+}
+
+Response:
+{
+  "message": "Gửi email test thành công",
+  "messageId": "..."
+}
+```
+
+## 11.6. Notification API
+
+Nhóm API Notification dùng để người dùng xem và quản lý thông báo của chính mình.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| GET | `/notifications` | Xem danh sách notification | User |
+| GET | `/notifications/unread-count` | Đếm notification chưa đọc | User |
+| PATCH | `/notifications/:id/read` | Đánh dấu một notification đã đọc | User |
+| PATCH | `/notifications/read-all` | Đánh dấu tất cả notification đã đọc | User |
+
+### Query params danh sách notification
+
+```
+page
+limit
+isRead
+type
+```
+
+### Ví dụ lấy danh sách notification
+
+```http
+GET /api/notifications?page=1&limit=10&isRead=false&type=SYSTEM
+Authorization: Bearer access_token
+```
+
+### Ví dụ response unread count
+
+```json
+{
+  "message": "Lấy số thông báo chưa đọc thành công",
+  "unreadCount": 3
+}
+```
+
+## 11.7. Admin Notification API
+
+Nhóm API Admin Notification dùng để quản trị viên gửi thông báo cho người dùng.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| POST | `/admin/notifications/user/:id` | Gửi notification cho một user | Admin |
+| POST | `/admin/notifications/broadcast` | Gửi notification hàng loạt | Admin |
+
+### Ví dụ gửi notification cho một user
+
+```http
+POST /api/admin/notifications/user/2
+Authorization: Bearer admin_access_token
+Content-Type: application/json
+
+Body:
+{
+  "title": "Thông báo từ quản trị viên",
+  "message": "Đây là thông báo gửi riêng cho bạn.",
+  "type": "SYSTEM",
+  "link": "/profile"
+}
+```
+
+### Ví dụ broadcast notification
+
+```http
+POST /api/admin/notifications/broadcast
+Authorization: Bearer admin_access_token
+Content-Type: application/json
+
+Body:
+{
+  "title": "Thông báo hệ thống",
+  "message": "Hệ thống sẽ bảo trì vào 22:00 tối nay.",
+  "type": "SYSTEM",
+  "link": "/notifications"
+}
+```
+
+Có thể gửi theo role:
+
+```json
+{
+  "title": "Thông báo cho user",
+  "message": "Thông báo này chỉ gửi cho role USER.",
+  "type": "SYSTEM",
+  "role": "USER"
+}
+```
+
+## 11.8. Activity Log API
+
+Nhóm API Activity Log dùng để admin theo dõi lịch sử hoạt động trong hệ thống.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| GET | `/admin/activity-logs` | Xem danh sách activity log | Admin |
+| GET | `/admin/activity-logs/:id` | Xem chi tiết activity log | Admin |
+
+### Query params danh sách activity log
+
+```
+page
+limit
+search
+userId
+action
+method
+```
+
+### Ví dụ lấy danh sách activity log
+
+```http
+GET /api/admin/activity-logs?page=1&limit=10&search=LOGIN&method=POST
+Authorization: Bearer admin_access_token
+```
+
+### Ví dụ xem chi tiết log
+
+```http
+GET /api/admin/activity-logs/1
+Authorization: Bearer admin_access_token
+```
+
+## 11.9. Admin Dashboard API
+
+Nhóm API Admin Dashboard dùng để thống kê dữ liệu hệ thống cho quản trị viên.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| GET | `/admin/dashboard/overview` | Thống kê tổng quan | Admin |
+| GET | `/admin/dashboard/users` | Thống kê người dùng | Admin |
+| GET | `/admin/dashboard/files` | Thống kê file upload | Admin |
+| GET | `/admin/dashboard/system` | Thống kê notification và activity log | Admin |
+| GET | `/admin/dashboard/recent-activities` | Hoạt động gần đây | Admin |
+
+### Ví dụ dashboard overview
+
+```http
+GET /api/admin/dashboard/overview
+Authorization: Bearer admin_access_token
+
+Response:
+{
+  "message": "Lấy thống kê tổng quan dashboard thành công",
+  "overview": {
+    "totalUsers": 10,
+    "newUsersToday": 2,
+    "blockedUsers": 1,
+    "activeUsers": 9,
+    "totalFiles": 15,
+    "totalNotifications": 30,
+    "totalActivityLogs": 80,
+    "loginToday": 5
+  }
+}
+```
+
+## 11.10. Health API
+
+API Health dùng để kiểm tra trạng thái hoạt động của server và kết nối database.
+
+| Method | Endpoint | Chức năng | Quyền |
+|---|---|---|---|
+| GET | `/health` | Kiểm tra server và database | Public |
+
+### Ví dụ response
+
+```json
+{
+  "status": "success",
+  "database": "connected"
+}
+```
+
+## 11.11. Nhận xét thiết kế API
+
+Thiết kế API của hệ thống có các đặc điểm sau:
+
+- API được chia thành nhiều nhóm theo chức năng, giúp dễ quản lý và mở rộng.
+- Các endpoint tuân theo phong cách RESTful.
+- Các API cần đăng nhập được bảo vệ bằng JWT.
+- Các API dành cho admin được bảo vệ bằng role ADMIN.
+- Các API danh sách có hỗ trợ phân trang, tìm kiếm và lọc.
+- Các API upload sử dụng multipart/form-data.
+- Các API liên quan đến bảo mật như reset password và verify email sử dụng token có thời hạn.
+- Các thao tác quan trọng được kết hợp với email, notification và activity log.
+- Cấu trúc API có thể mở rộng khi thêm các module nghiệp vụ mới như Product, Order, Appointment hoặc Course.
 
 ---
 
