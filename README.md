@@ -21,7 +21,8 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
   - [Email API](#email-api)
   - [User Profile API](#user-profile-api)
   - [Admin API](#admin-api)
-  - [Upload File API](#upload-file-api)
+  - [Admin Dashboard API](#admin-dashboard-api)
+- [Upload File API](#upload-file-api)
 - [Notification API](#notification-api)
 - [Admin Notification API](#admin-notification-api)
 - [Request Examples](#request-examples)
@@ -96,6 +97,13 @@ A secure authentication system built with Node.js, Express, Prisma, MySQL, JWT a
 - Admin xem danh sach activity log
 - Admin tim kiem, loc, phan trang activity log
 - Admin xem chi tiet activity log
+- Admin xem thong ke tong quan he thong
+- Admin xem thong ke nguoi dung theo role, provider, status
+- Admin xem thong ke user da xac thuc / chua xac thuc email
+- Admin xem thong ke file upload theo type va folder
+- Admin xem tong dung luong file upload
+- Admin xem thong ke notification va activity log
+- Admin xem hoat dong gan day cua he thong
 
 ---
 
@@ -419,6 +427,16 @@ Server runs at: **http://localhost:5000**
 |--------|----------------------------------|--------------------------------------|
 | GET    | `/api/admin/activity-logs`        | Admin xem danh sach activity log     |
 | GET    | `/api/admin/activity-logs/:id`   | Admin xem chi tiet activity log      |
+
+### Admin Dashboard API
+
+| Method | Endpoint                              | Mo ta                                      |
+|--------|---------------------------------------|-------------------------------------------|
+| GET    | `/api/admin/dashboard/overview`        | Thong ke tong quan he thong               |
+| GET    | `/api/admin/dashboard/users`           | Thong ke nguoi dung                        |
+| GET    | `/api/admin/dashboard/files`           | Thong ke file upload                       |
+| GET    | `/api/admin/dashboard/system`          | Thong ke notification va activity log     |
+| GET    | `/api/admin/dashboard/recent-activities` | Hoat dong gan day                        |
 
 ---
 
@@ -807,6 +825,152 @@ Response:
       "provider": "local",
       "status": "ACTIVE"
     }
+  }
+}
+```
+
+### Admin Dashboard Overview
+
+```http
+GET /api/admin/dashboard/overview
+Authorization: Bearer admin_access_token
+```
+
+Response:
+
+```json
+{
+  "message": "Lay thong ke tong quan dashboard thanh cong",
+  "overview": {
+    "totalUsers": 10,
+    "newUsersToday": 2,
+    "blockedUsers": 1,
+    "activeUsers": 9,
+    "totalFiles": 15,
+    "totalNotifications": 30,
+    "totalActivityLogs": 80,
+    "loginToday": 5
+  }
+}
+```
+
+### User Statistics
+
+```http
+GET /api/admin/dashboard/users
+Authorization: Bearer admin_access_token
+```
+
+Response:
+
+```json
+{
+  "message": "Lay thong ke nguoi dung thanh cong",
+  "statistics": {
+    "totalUsers": 10,
+    "verifiedUsers": 8,
+    "unverifiedUsers": 2,
+    "usersByRole": [
+      { "role": "ADMIN", "count": 2 },
+      { "role": "USER", "count": 8 }
+    ],
+    "usersByProvider": [
+      { "provider": "local", "count": 7 },
+      { "provider": "google", "count": 2 }
+    ],
+    "usersByStatus": [
+      { "status": "ACTIVE", "count": 9 },
+      { "status": "BLOCKED", "count": 1 }
+    ]
+  }
+}
+```
+
+### File Statistics
+
+```http
+GET /api/admin/dashboard/files
+Authorization: Bearer admin_access_token
+```
+
+Response:
+
+```json
+{
+  "message": "Lay thong ke file upload thanh cong",
+  "statistics": {
+    "totalFiles": 20,
+    "filesUploadedToday": 3,
+    "totalSizeBytes": 5242880,
+    "totalSizeMB": 5,
+    "filesByType": [
+      { "type": "IMAGE", "count": 12 },
+      { "type": "DOCUMENT", "count": 8 }
+    ],
+    "filesByFolder": [
+      { "folder": "products", "count": 10 },
+      { "folder": "documents", "count": 5 },
+      { "folder": "avatars", "count": 5 }
+    ]
+  }
+}
+```
+
+### System Statistics
+
+```http
+GET /api/admin/dashboard/system
+Authorization: Bearer admin_access_token
+```
+
+Response:
+
+```json
+{
+  "message": "Lay thong ke he thong thanh cong",
+  "statistics": {
+    "notifications": {
+      "totalNotifications": 30,
+      "unreadNotifications": 8,
+      "readNotifications": 22,
+      "notificationsByType": [
+        { "type": "SYSTEM", "count": 15 },
+        { "type": "ACCOUNT", "count": 10 }
+      ]
+    },
+    "activityLogs": {
+      "totalActivityLogs": 80,
+      "activityLogsToday": 12,
+      "activityLogsByAction": [
+        { "action": "LOGIN", "count": 20 },
+        { "action": "UPLOAD_FILE", "count": 10 }
+      ],
+      "activityLogsByMethod": [
+        { "method": "POST", "count": 30 },
+        { "method": "PATCH", "count": 20 }
+      ]
+    }
+  }
+}
+```
+
+### Recent Activities
+
+```http
+GET /api/admin/dashboard/recent-activities?limit=5
+Authorization: Bearer admin_access_token
+```
+
+Response:
+
+```json
+{
+  "message": "Lay hoat dong gan day thanh cong",
+  "recent": {
+    "recentUsers": [],
+    "recentFiles": [],
+    "recentNotifications": [],
+    "recentActivityLogs": []
   }
 }
 ```

@@ -62,6 +62,12 @@
 - [Activity Log APIs](#activity-log-apis)
   - [GET /api/admin/activity-logs](#40-get-apiadminactivity-logs)
   - [GET /api/admin/activity-logs/:id](#41-get-apiadminactivity-logsid)
+- [Admin Dashboard APIs](#admin-dashboard-apis)
+  - [GET /api/admin/dashboard/overview](#42-get-apiadmindashboardoverview)
+  - [GET /api/admin/dashboard/users](#43-get-apiadmindashboardusers)
+  - [GET /api/admin/dashboard/files](#44-get-apiadmindashboardfiles)
+  - [GET /api/admin/dashboard/system](#45-get-apiadmindashboardsystem)
+  - [GET /api/admin/dashboard/recent-activities](#46-get-apiadmindashboardrecent-activities)
 - [Activity Log Actions](#activity-log-actions)
 
 - [Response Formats](#response-formats)
@@ -1930,6 +1936,192 @@ Authorization: Bearer <accessToken>
 | 403    | Ban khong co quyen truy cap chuc nang nay     |
 | 404    | Khong tim thay activity log                  |
 | 500    | Loi server khi lay chi tiet activity log     |
+
+---
+
+## Admin Dashboard APIs
+
+### 42. GET `/api/admin/dashboard/overview`
+
+Lay thong ke tong quan he thong.
+
+**Header:**
+
+```txt
+Authorization: Bearer admin_access_token
+```
+
+**Response:**
+
+```json
+{
+  "message": "Lay thong ke tong quan dashboard thanh cong",
+  "overview": {
+    "totalUsers": 10,
+    "newUsersToday": 2,
+    "blockedUsers": 1,
+    "activeUsers": 9,
+    "totalFiles": 15,
+    "totalNotifications": 30,
+    "totalActivityLogs": 80,
+    "loginToday": 5
+  }
+}
+```
+
+---
+
+### 43. GET `/api/admin/dashboard/users`
+
+Lay thong ke nguoi dung.
+
+**Header:**
+
+```txt
+Authorization: Bearer admin_access_token
+```
+
+**Response:**
+
+```json
+{
+  "message": "Lay thong ke nguoi dung thanh cong",
+  "statistics": {
+    "totalUsers": 10,
+    "verifiedUsers": 8,
+    "unverifiedUsers": 2,
+    "usersByRole": [
+      { "role": "ADMIN", "count": 2 },
+      { "role": "USER", "count": 8 }
+    ],
+    "usersByProvider": [
+      { "provider": "local", "count": 7 },
+      { "provider": "google", "count": 2 }
+    ],
+    "usersByStatus": [
+      { "status": "ACTIVE", "count": 9 },
+      { "status": "BLOCKED", "count": 1 }
+    ]
+  }
+}
+```
+
+---
+
+### 44. GET `/api/admin/dashboard/files`
+
+Lay thong ke file upload.
+
+**Header:**
+
+```txt
+Authorization: Bearer admin_access_token
+```
+
+**Response:**
+
+```json
+{
+  "message": "Lay thong ke file upload thanh cong",
+  "statistics": {
+    "totalFiles": 20,
+    "filesUploadedToday": 3,
+    "totalSizeBytes": 5242880,
+    "totalSizeMB": 5,
+    "filesByType": [
+      { "type": "IMAGE", "count": 12 },
+      { "type": "DOCUMENT", "count": 8 }
+    ],
+    "filesByFolder": [
+      { "folder": "products", "count": 10 },
+      { "folder": "documents", "count": 5 },
+      { "folder": "avatars", "count": 5 }
+    ]
+  }
+}
+```
+
+---
+
+### 45. GET `/api/admin/dashboard/system`
+
+Lay thong ke notification va activity log.
+
+**Header:**
+
+```txt
+Authorization: Bearer admin_access_token
+```
+
+**Response:**
+
+```json
+{
+  "message": "Lay thong ke he thong thanh cong",
+  "statistics": {
+    "notifications": {
+      "totalNotifications": 30,
+      "unreadNotifications": 8,
+      "readNotifications": 22,
+      "notificationsByType": [
+        { "type": "SYSTEM", "count": 15 },
+        { "type": "ACCOUNT", "count": 10 }
+      ]
+    },
+    "activityLogs": {
+      "totalActivityLogs": 80,
+      "activityLogsToday": 12,
+      "activityLogsByAction": [
+        { "action": "LOGIN", "count": 20 },
+        { "action": "UPLOAD_FILE", "count": 10 }
+      ],
+      "activityLogsByMethod": [
+        { "method": "POST", "count": 30 },
+        { "method": "PATCH", "count": 20 }
+      ]
+    }
+  }
+}
+```
+
+---
+
+### 46. GET `/api/admin/dashboard/recent-activities`
+
+Lay hoat dong gan day cua he thong.
+
+**Header:**
+
+```txt
+Authorization: Bearer admin_access_token
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description                    |
+|-----------|------|----------|--------------------------------|
+| `limit`   | int  | No       | So item moi nhom (mac dinh: 5)|
+
+**Response:**
+
+```json
+{
+  "message": "Lay hoat dong gan day thanh cong",
+  "recent": {
+    "recentUsers": [],
+    "recentFiles": [],
+    "recentNotifications": [],
+    "recentActivityLogs": []
+  }
+}
+```
+
+**Note:**
+
+```txt
+Chi ADMIN moi duoc xem dashboard.
+Cac so lieu dashboard lay tu User, UploadedFile, Notification va ActivityLog.
+```
 
 ---
 
