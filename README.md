@@ -1192,3 +1192,250 @@ Frontend hiển thị card thống kê và hoạt động gần đây
 - Notification statistics
 - Activity log statistics
 - Recent activities
+
+---
+
+## Security Features
+
+Project đã tích hợp nhiều cơ chế bảo mật cơ bản thường dùng trong hệ thống thực tế.
+
+### 1. Password Hashing
+
+Mật khẩu người dùng không được lưu trực tiếp trong database.
+
+Backend sử dụng `bcrypt` để hash password trước khi lưu.
+
+```txt
+Plain password
+      ↓
+bcrypt hash
+      ↓
+Save hashed password to database
+```
+
+### 2. JWT Authentication
+
+Hệ thống sử dụng JWT để xác thực người dùng.
+
+- `accessToken`: dùng để gọi API
+- `refreshToken`: dùng để cấp lại accessToken
+
+Access token có thời hạn ngắn, refresh token có thời hạn dài hơn và được lưu trong database để có thể thu hồi khi cần.
+
+### 3. Refresh Token Revocation
+
+Refresh token sẽ bị thu hồi trong các trường hợp:
+
+- User logout
+- User đổi mật khẩu
+- User reset mật khẩu
+- Admin khóa tài khoản user
+- Admin đổi role user
+
+### 4. Email Verification
+
+User đăng ký bằng email/password phải xác thực email trước khi đăng nhập.
+
+- `isVerified = false` → không được login
+- `isVerified = true` → được login
+
+### 5. Forgot Password Security
+
+Reset password token không được trả trực tiếp trong response.
+
+Token chỉ được gửi qua email.
+
+Sau khi reset password thành công:
+
+- Password được cập nhật
+- Reset token bị xóa
+- Refresh token cũ bị thu hồi
+- User nhận email cảnh báo bảo mật
+
+### 6. Role-based Access Control
+
+Hệ thống có phân quyền theo role:
+
+- `USER`
+- `ADMIN`
+
+Các API admin chỉ cho phép user có role `ADMIN` truy cập.
+
+### 7. Account Status Check
+
+User có status `BLOCKED` sẽ không được đăng nhập.
+
+- `ACTIVE` → được login
+- `BLOCKED` → không được login
+
+### 8. File Upload Validation
+
+Upload file có kiểm tra:
+
+- Loại file
+- Kích thước file
+- Field upload
+- User sở hữu file
+
+User thường chỉ được quản lý file của chính mình.
+
+### 9. Activity Log
+
+Các hành động quan trọng đều được ghi log để admin truy vết.
+
+Ví dụ:
+
+- Login / Logout
+- Change password / Reset password
+- Upload file / Delete file
+- Admin đổi role / Khóa / Mở khóa user
+
+### 10. Admin Protection
+
+Backend nên chặn các thao tác nguy hiểm như:
+
+- Admin tự khóa chính mình
+- Admin tự hạ role chính mình
+- User thường gọi API admin
+
+---
+
+## Role and Permission Summary
+
+### USER
+
+User thường có thể:
+
+- Đăng ký tài khoản
+- Xác thực email
+- Đăng nhập
+- Xem hồ sơ cá nhân
+- Cập nhật hồ sơ cá nhân
+- Upload avatar
+- Upload file cá nhân
+- Xem file của chính mình
+- Xóa file của chính mình
+- Xem thông báo của chính mình
+- Đánh dấu thông báo đã đọc
+- Đổi mật khẩu
+- Reset mật khẩu
+
+### ADMIN
+
+Admin có toàn bộ quyền của USER, ngoài ra có thể:
+
+- Xem danh sách user
+- Tìm kiếm, lọc, phân trang user
+- Xem chi tiết user
+- Đổi role user
+- Khóa / mở khóa user
+- Xem toàn bộ file upload
+- Xóa file của bất kỳ user nào
+- Gửi notification cho 1 user
+- Broadcast notification
+- Xem activity logs
+- Xem dashboard statistics
+- Gửi email test
+
+---
+
+## Environment Variables Summary
+
+### Backend `.env`
+
+```env
+PORT=5000
+DATABASE_URL="your_database_url"
+
+JWT_ACCESS_SECRET="your_access_secret"
+JWT_REFRESH_SECRET="your_refresh_secret"
+JWT_ACCESS_EXPIRES_IN="15m"
+JWT_REFRESH_EXPIRES_IN="7d"
+
+CLIENT_URL="http://localhost:5173"
+
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_SECURE=false
+EMAIL_USER="your_email@gmail.com"
+EMAIL_PASS="your_gmail_app_password"
+EMAIL_FROM_NAME="JWT Auth Service"
+EMAIL_FROM_ADDRESS="your_email@gmail.com"
+
+GOOGLE_CLIENT_ID="your_google_client_id"
+GOOGLE_CLIENT_SECRET="your_google_client_secret"
+GOOGLE_CALLBACK_URL="http://localhost:5000/api/auth/google/callback"
+
+FACEBOOK_APP_ID="your_facebook_app_id"
+FACEBOOK_APP_SECRET="your_facebook_app_secret"
+FACEBOOK_CALLBACK_URL="http://localhost:5000/api/auth/facebook/callback"
+```
+
+### Frontend `.env`
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+---
+
+## Common Issues
+
+### 1. Frontend không gọi được backend
+
+Kiểm tra frontend `.env`:
+
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+Sau khi sửa `.env`, cần restart frontend.
+
+### 2. Link email trỏ sai port
+
+Kiểm tra backend `.env`:
+
+```env
+CLIENT_URL="http://localhost:5173"
+```
+
+Sau khi sửa `.env`, cần restart backend.
+
+### 3. Không gửi được email
+
+Kiểm tra:
+
+- Gmail đã bật 2-Step Verification chưa
+- Đã tạo Gmail App Password chưa
+- `EMAIL_USER` đúng chưa
+- `EMAIL_PASS` có phải App Password không
+- Backend đã restart sau khi sửa `.env` chưa
+
+### 4. Prisma không nhận field mới
+
+Chạy lại:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+### 5. Upload file lỗi Unexpected field
+
+Kiểm tra key form-data:
+
+- Upload single: `file`
+- Upload multiple: `files`
+- Upload avatar: `avatar`
+
+### 6. User không vào được admin dashboard
+
+Kiểm tra user có role: `ADMIN`
+
+Nếu là `USER`, frontend sẽ chuyển về `/profile`.
+
+### 7. User login bị báo chưa xác thực email
+
+Kiểm tra trong database: `isVerified = true`
+
+Nếu vẫn là `false`, cần xác thực email hoặc gọi API resend verification email.
