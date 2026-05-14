@@ -796,7 +796,328 @@ Phần này mô tả chi tiết một số Use Case quan trọng trong hệ th�
 
 # 10. THIẾT KẾ CƠ SỞ DỮ LIỆU
 
-*(Nội dung sẽ được điền sau)*
+Cơ sở dữ liệu của hệ thống được thiết kế theo mô hình quan hệ, sử dụng SQL Database và Prisma ORM để quản lý schema, migration và truy vấn dữ liệu.
+
+Hệ thống hiện tại tập trung vào các chức năng lõi như xác thực người dùng, quản lý hồ sơ, upload file, notification, activity log và dashboard thống kê. Vì vậy, cơ sở dữ liệu bao gồm các bảng chính sau:
+
+- User
+- RefreshToken
+- UploadedFile
+- Notification
+- ActivityLog
+
+Các bảng được thiết kế có quan hệ với nhau thông qua khóa chính và khóa ngoại. Trong đó, bảng User là bảng trung tâm của hệ thống vì hầu hết các dữ liệu như refresh token, file upload, notification và activity log đều liên quan đến người dùng.
+
+## 10.1. Sơ đồ quan hệ cơ sở dữ liệu
+
+```mermaid
+erDiagram
+    User ||--o{ RefreshToken : has
+    User ||--o{ UploadedFile : uploads
+    User ||--o{ Notification : receives
+    User ||--o{ ActivityLog : performs
+
+    User {
+        int id PK
+        string name
+        string email
+        string password
+        string role
+        string provider
+        boolean isVerified
+        string status
+        string phone
+        string address
+        string avatar
+        datetime lastLoginAt
+        string resetPasswordToken
+        datetime resetPasswordExpires
+        string verifyEmailToken
+        datetime verifyEmailExpires
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    RefreshToken {
+        int id PK
+        string token
+        int userId FK
+        datetime expiresAt
+        datetime revokedAt
+        datetime createdAt
+    }
+
+    UploadedFile {
+        int id PK
+        string originalName
+        string fileName
+        string filePath
+        string fileUrl
+        string mimeType
+        int size
+        string folder
+        string type
+        int uploadedById FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    Notification {
+        int id PK
+        int userId FK
+        string title
+        string message
+        string type
+        boolean isRead
+        string link
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    ActivityLog {
+        int id PK
+        int userId FK
+        string action
+        string method
+        string path
+        string ip
+        string userAgent
+        string details
+        datetime createdAt
+    }
+```
+
+## 10.2. Bảng User
+
+Bảng User dùng để lưu thông tin tài khoản người dùng trong hệ thống. Đây là bảng trung tâm, được liên kết với nhiều bảng khác như RefreshToken, UploadedFile, Notification và ActivityLog.
+
+| Tên trường | Kiểu dữ liệu | Ý nghĩa |
+|---|---|---|
+| id | Int | Khóa chính, tự tăng |
+| name | String | Họ tên người dùng |
+| email | String | Email đăng nhập, không được trùng |
+| password | String | Mật khẩu đã được hash |
+| role | Enum/String | Vai trò người dùng, gồm USER hoặc ADMIN |
+| provider | String | Nguồn đăng nhập: local, google, facebook |
+| isVerified | Boolean | Trạng thái xác thực email |
+| status | Enum/String | Trạng thái tài khoản: ACTIVE hoặc BLOCKED |
+| phone | String | Số điện thoại |
+| address | String | Địa chỉ |
+| avatar | String | Đường dẫn ảnh đại diện |
+| lastLoginAt | DateTime | Thời gian đăng nhập gần nhất |
+| resetPasswordToken | String | Token đặt lại mật khẩu |
+| resetPasswordExpires | DateTime | Thời hạn token đặt lại mật khẩu |
+| verifyEmailToken | String | Token xác thực email |
+| verifyEmailExpires | DateTime | Thời hạn token xác thực email |
+| createdAt | DateTime | Thời gian tạo tài khoản |
+| updatedAt | DateTime | Thời gian cập nhật tài khoản |
+
+### Vai trò của bảng User
+
+Bảng User phục vụ các chức năng:
+
+- Đăng ký tài khoản.
+- Đăng nhập.
+- Xác thực email.
+- Quản lý hồ sơ cá nhân.
+- Phân quyền USER và ADMIN.
+- Khóa hoặc mở khóa tài khoản.
+- Đăng nhập bằng OAuth.
+- Quên mật khẩu và reset mật khẩu.
+
+## 10.3. Bảng RefreshToken
+
+Bảng RefreshToken dùng để lưu refresh token của người dùng sau khi đăng nhập. Việc lưu refresh token trong database giúp hệ thống có thể thu hồi phiên đăng nhập khi người dùng logout, đổi mật khẩu, reset mật khẩu, bị khóa tài khoản hoặc bị đổi role.
+
+| Tên trường | Kiểu dữ liệu | Ý nghĩa |
+|---|---|---|
+| id | Int | Khóa chính, tự tăng |
+| token | String | Refresh token |
+| userId | Int | Khóa ngoại liên kết đến User |
+| expiresAt | DateTime | Thời gian hết hạn |
+| revokedAt | DateTime | Thời gian bị thu hồi token |
+| createdAt | DateTime | Thời gian tạo token |
+
+### Vai trò của bảng RefreshToken
+
+Bảng RefreshToken phục vụ các chức năng:
+
+- Duy trì phiên đăng nhập.
+- Làm mới access token.
+- Đăng xuất.
+- Thu hồi phiên đăng nhập khi đổi mật khẩu.
+- Thu hồi phiên đăng nhập khi reset mật khẩu.
+- Thu hồi phiên đăng nhập khi tài khoản bị khóa.
+- Thu hồi phiên đăng nhập khi admin đổi role user.
+
+## 10.4. Bảng UploadedFile
+
+Bảng UploadedFile dùng để lưu metadata của các file được upload lên hệ thống. File vật lý được lưu trong thư mục uploads, còn thông tin file được lưu trong database.
+
+| Tên trường | Kiểu dữ liệu | Ý nghĩa |
+|---|---|---|
+| id | Int | Khóa chính, tự tăng |
+| originalName | String | Tên gốc của file |
+| fileName | String | Tên file sau khi lưu trên server |
+| filePath | String | Đường dẫn file trên server |
+| fileUrl | String | URL để truy cập file |
+| mimeType | String | Kiểu MIME của file |
+| size | Int | Kích thước file |
+| folder | String | Thư mục lưu file |
+| type | Enum/String | Loại file: IMAGE, DOCUMENT, VIDEO, AUDIO, OTHER |
+| uploadedById | Int | ID người upload file |
+| createdAt | DateTime | Thời gian upload |
+| updatedAt | DateTime | Thời gian cập nhật |
+
+### Vai trò của bảng UploadedFile
+
+Bảng UploadedFile phục vụ các chức năng:
+
+- Upload một file.
+- Upload nhiều file.
+- Upload avatar.
+- Quản lý file đã upload.
+- Tìm kiếm và lọc file.
+- Phân quyền file theo người upload.
+- Admin quản lý toàn bộ file trong hệ thống.
+
+## 10.5. Bảng Notification
+
+Bảng Notification dùng để lưu các thông báo trong hệ thống. Mỗi notification thuộc về một user cụ thể.
+
+| Tên trường | Kiểu dữ liệu | Ý nghĩa |
+|---|---|---|
+| id | Int | Khóa chính, tự tăng |
+| userId | Int | ID người nhận thông báo |
+| title | String | Tiêu đề thông báo |
+| message | String | Nội dung thông báo |
+| type | Enum/String | Loại thông báo |
+| isRead | Boolean | Trạng thái đã đọc hay chưa |
+| link | String | Link điều hướng nếu có |
+| createdAt | DateTime | Thời gian tạo thông báo |
+| updatedAt | DateTime | Thời gian cập nhật thông báo |
+
+### Các loại notification
+
+- SYSTEM
+- SECURITY
+- ACCOUNT
+- ORDER
+- APPOINTMENT
+- COURSE
+- OTHER
+
+### Vai trò của bảng Notification
+
+Bảng Notification phục vụ các chức năng:
+
+- User xem danh sách thông báo.
+- Đếm số thông báo chưa đọc.
+- Đánh dấu một thông báo đã đọc.
+- Đánh dấu tất cả thông báo đã đọc.
+- Admin gửi thông báo cho một user.
+- Admin gửi thông báo hàng loạt.
+- Tạo thông báo khi đổi role user.
+- Tạo thông báo khi khóa hoặc mở khóa tài khoản.
+
+## 10.6. Bảng ActivityLog
+
+Bảng ActivityLog dùng để lưu lại các hành động quan trọng của người dùng và quản trị viên. Đây là bảng phục vụ chức năng audit log, giúp admin có thể truy vết các thao tác trong hệ thống.
+
+| Tên trường | Kiểu dữ liệu | Ý nghĩa |
+|---|---|---|
+| id | Int | Khóa chính, tự tăng |
+| userId | Int | ID người thực hiện hành động |
+| action | String | Tên hành động |
+| method | String | HTTP method |
+| path | String | API endpoint được gọi |
+| ip | String | Địa chỉ IP |
+| userAgent | String | Thông tin trình duyệt hoặc client |
+| details | String | Mô tả chi tiết hành động |
+| createdAt | DateTime | Thời gian tạo log |
+
+### Các action chính
+
+- LOGIN
+- LOGOUT
+- CHANGE_PASSWORD
+- RESET_PASSWORD
+- UPLOAD_FILE
+- UPLOAD_MULTIPLE_FILES
+- DELETE_FILE
+- UPDATE_USER_ROLE
+- UPDATE_USER_STATUS
+- SEND_NOTIFICATION_TO_USER
+- BROADCAST_NOTIFICATION
+
+### Vai trò của bảng ActivityLog
+
+Bảng ActivityLog phục vụ các chức năng:
+
+- Ghi lại lịch sử đăng nhập.
+- Ghi lại lịch sử đăng xuất.
+- Ghi lại lịch sử đổi mật khẩu.
+- Ghi lại lịch sử reset mật khẩu.
+- Ghi lại lịch sử upload và xóa file.
+- Ghi lại thao tác quản trị người dùng.
+- Ghi lại thao tác gửi notification.
+- Cho phép admin tìm kiếm, lọc và xem chi tiết log.
+
+## 10.7. Quan hệ giữa các bảng
+
+Các quan hệ chính trong cơ sở dữ liệu bao gồm:
+
+### User - RefreshToken
+
+Một user có thể có nhiều refresh token.
+
+```
+User 1 ─── n RefreshToken
+```
+
+Quan hệ này phục vụ việc quản lý nhiều phiên đăng nhập và thu hồi token khi cần.
+
+### User - UploadedFile
+
+Một user có thể upload nhiều file.
+
+```
+User 1 ─── n UploadedFile
+```
+
+Quan hệ này giúp hệ thống xác định file thuộc về user nào.
+
+### User - Notification
+
+Một user có thể nhận nhiều notification.
+
+```
+User 1 ─── n Notification
+```
+
+Quan hệ này giúp user chỉ xem được notification của chính mình.
+
+### User - ActivityLog
+
+Một user có thể tạo ra nhiều activity log.
+
+```
+User 1 ─── n ActivityLog
+```
+
+Quan hệ này giúp admin biết hành động nào được thực hiện bởi user nào.
+
+## 10.8. Nhận xét thiết kế cơ sở dữ liệu
+
+Thiết kế cơ sở dữ liệu của hệ thống có các ưu điểm sau:
+
+- Bảng User đóng vai trò trung tâm, giúp quản lý tài khoản và phân quyền rõ ràng.
+- RefreshToken được tách riêng, giúp hệ thống dễ dàng quản lý phiên đăng nhập.
+- UploadedFile lưu metadata thay vì chỉ lưu đường dẫn file, giúp dễ tìm kiếm và quản lý file.
+- Notification được thiết kế độc lập, có thể tái sử dụng cho nhiều nghiệp vụ khác nhau.
+- ActivityLog giúp hệ thống có khả năng truy vết hành động quan trọng.
+- Các bảng có quan hệ rõ ràng, phù hợp với mô hình cơ sở dữ liệu quan hệ.
+- Cấu trúc dữ liệu có thể mở rộng khi phát triển thêm các module nghiệp vụ như Product, Order, Appointment hoặc Course.
 
 ---
 
