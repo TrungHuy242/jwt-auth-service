@@ -1439,3 +1439,226 @@ Nếu là `USER`, frontend sẽ chuyển về `/profile`.
 Kiểm tra trong database: `isVerified = true`
 
 Nếu vẫn là `false`, cần xác thực email hoặc gọi API resend verification email.
+
+---
+
+## Screenshots
+
+Bạn có thể thêm ảnh demo vào thư mục:
+
+```txt
+screenshots/
+```
+
+**Gợi ý các ảnh nên chụp:**
+
+- `screenshots/login.png`
+- `screenshots/register.png`
+- `screenshots/profile.png`
+- `screenshots/notifications.png`
+- `screenshots/admin-dashboard.png`
+- `screenshots/admin-users.png`
+- `screenshots/admin-activity-logs.png`
+
+**Ví dụ hiển thị trong README:**
+
+### Login Page
+
+![Login Page](./screenshots/login.png)
+
+### Admin Dashboard
+
+![Admin Dashboard](./screenshots/admin-dashboard.png)
+
+### Admin Users Management
+
+![Admin Users](./screenshots/admin-users.png)
+
+### Activity Logs
+
+![Activity Logs](./screenshots/admin-activity-logs.png)
+
+---
+
+## Main Database Models
+
+Project hiện tại sử dụng các model chính:
+
+### User
+
+Lưu thông tin tài khoản người dùng:
+
+- `id`, `name`, `email`, `password`, `role`, `provider`
+- `isVerified`, `status`, `phone`, `address`, `avatar`
+- `lastLoginAt`
+- `resetPasswordToken`, `resetPasswordExpires`
+- `verifyEmailToken`, `verifyEmailExpires`
+- `createdAt`, `updatedAt`
+
+### RefreshToken
+
+Lưu refresh token để quản lý phiên đăng nhập:
+
+- `id`, `token`, `userId`, `expiresAt`, `revokedAt`, `createdAt`
+
+### UploadedFile
+
+Lưu metadata file upload:
+
+- `id`, `originalName`, `fileName`, `filePath`, `fileUrl`
+- `mimeType`, `size`, `folder`, `type`, `uploadedById`
+- `createdAt`, `updatedAt`
+
+### Notification
+
+Lưu thông báo trong hệ thống:
+
+- `id`, `userId`, `title`, `message`, `type`
+- `isRead`, `link`, `createdAt`, `updatedAt`
+
+### ActivityLog
+
+Lưu lịch sử hoạt động quan trọng:
+
+- `id`, `userId`, `action`, `method`, `path`
+- `ip`, `userAgent`, `details`, `createdAt`
+
+---
+
+## Future Development
+
+Project này là core system. Có thể mở rộng thành nhiều đồ án lớn.
+
+### Option 1: E-commerce System
+
+Có thể thêm:
+
+- Product Management
+- Category Management
+- Cart
+- Order
+- Payment
+- Product Review
+- Coupon / Promotion
+- Inventory Management
+
+### Option 2: Appointment Booking System
+
+Có thể thêm:
+
+- Doctor Management
+- Patient Management
+- Appointment Booking
+- Medical Record
+- Prescription
+- Payment
+- Doctor Schedule
+- Appointment Reminder
+
+### Option 3: LMS E-learning System
+
+Có thể thêm:
+
+- Course Management
+- Lesson Management
+- Enrollment
+- Assignment
+- Quiz
+- Certificate
+- Student Progress
+- Teacher Dashboard
+
+### Option 4: Student Management System
+
+Có thể thêm:
+
+- Class Management
+- Subject Management
+- Student Record
+- Attendance
+- Score Management
+- Report Export
+
+---
+
+## Suggested Roadmap
+
+Nếu tiếp tục phát triển project này, có thể đi theo roadmap:
+
+```txt
+Phase 1: Core System
+[✓] Auth Service
+[✓] User Profile
+[✓] Upload File
+[✓] Email Service
+[✓] Notification Service
+[✓] Activity Log
+[✓] Admin Dashboard
+[✓] Frontend Core Template
+
+Phase 2: Production Improvements
+[ ] Refresh token auto-renew trên frontend
+[ ] Toast notification UI
+[ ] Loading skeleton
+[ ] Form validation nâng cao
+[ ] Error boundary
+[ ] Docker compose backend + frontend + database
+[ ] API rate limiting nâng cao
+[ ] Unit test
+[ ] Integration test
+
+Phase 3: Business Module
+[ ] Chọn đề tài chính
+[ ] Thiết kế database module nghiệp vụ
+[ ] Xây API module nghiệp vụ
+[ ] Xây UI module nghiệp vụ
+[ ] Tích hợp notification/email/activity log
+[ ] Viết báo cáo đồ án
+```
+
+---
+
+## Git Commit Convention
+
+Gợi ý cách đặt commit message:
+
+```txt
+feat: add login feature
+feat: add notification service
+fix: resolve upload avatar issue
+docs: update API documentation
+refactor: clean auth controller
+style: update dashboard UI
+test: add auth API tests
+chore: update dependencies
+```
+
+**Ví dụ:**
+
+```bash
+git add .
+git commit -m "docs: add fullstack project README"
+git push
+```
+
+---
+
+## License
+
+This project is built for learning and academic purposes.
+
+You can reuse and extend it for student projects, graduation projects, or personal portfolio projects.
+
+---
+
+## Author
+
+Developed by: **Your Name**
+
+**Project purpose:**
+
+```txt
+Prepare reusable full-stack core modules for final year student projects.
+```
+
+> Bạn có thể đổi `Your Name` thành tên của bạn.
