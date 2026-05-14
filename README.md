@@ -594,3 +594,338 @@ Authorization: Bearer your_access_token
 ```
 
 Các API admin yêu cầu user có role: `ADMIN`
+
+---
+
+## Test Accounts
+
+Bạn có thể tạo tài khoản test bằng API register hoặc seed trực tiếp trong database.
+
+Ví dụ tài khoản dùng để test:
+
+### Admin Account
+
+```txt
+Email: admin@gmail.com
+Password: 123456
+Role: ADMIN
+Status: ACTIVE
+isVerified: true
+```
+
+### User Account
+
+```txt
+Email: user@gmail.com
+Password: 123456
+Role: USER
+Status: ACTIVE
+isVerified: true
+```
+
+### Blocked User Account
+
+```txt
+Email: blocked@gmail.com
+Password: 123456
+Role: USER
+Status: BLOCKED
+isVerified: true
+```
+
+### Unverified User Account
+
+```txt
+Email: unverified@gmail.com
+Password: 123456
+Role: USER
+Status: ACTIVE
+isVerified: false
+```
+
+> **Lưu ý:** Không nên commit tài khoản thật hoặc mật khẩu thật lên GitHub.
+
+---
+
+## Create Admin Account
+
+Nếu chưa có tài khoản admin, có thể tạo user bằng register trước, sau đó cập nhật role trong database.
+
+Ví dụ SQL:
+
+```sql
+UPDATE users
+SET role = 'ADMIN', isVerified = true, status = 'ACTIVE'
+WHERE email = 'admin@gmail.com';
+```
+
+Sau đó đăng nhập bằng tài khoản admin để sử dụng các API admin.
+
+---
+
+## Backend Quick Test Flow
+
+Có thể test backend bằng Postman theo thứ tự sau:
+
+### 1. Register
+
+```http
+POST /api/auth/register
+```
+
+Body:
+
+```json
+{
+  "name": "Test User",
+  "email": "testuser@gmail.com",
+  "password": "Test@123456"
+}
+```
+
+Kết quả:
+
+- User được tạo trong database
+- `isVerified = false`
+- Email xác thực được gửi đến user
+
+### 2. Verify Email
+
+Mở link verify trong email hoặc gọi trực tiếp:
+
+```http
+GET /api/auth/verify-email?token=verify_token
+```
+
+Kết quả:
+
+- `isVerified = true`
+- `verifyEmailToken = null`
+- User có thể đăng nhập
+
+### 3. Login
+
+```http
+POST /api/auth/login
+```
+
+Body:
+
+```json
+{
+  "email": "testuser@gmail.com",
+  "password": "Test@123456"
+}
+```
+
+Kết quả:
+
+- Nhận `accessToken`
+- Nhận `refreshToken`
+- Nhận thông tin user
+
+### 4. Get Current User
+
+```http
+GET /api/auth/me
+Authorization: Bearer access_token
+```
+
+### 5. Update Profile
+
+```http
+PATCH /api/users/me
+Authorization: Bearer access_token
+```
+
+Body:
+
+```json
+{
+  "name": "Updated User",
+  "phone": "0123456789",
+  "address": "Da Nang"
+}
+```
+
+### 6. Upload File
+
+```http
+POST /api/uploads/single
+Authorization: Bearer access_token
+Content-Type: multipart/form-data
+```
+
+Form-data:
+
+```txt
+file: selected_file
+folder: documents
+```
+
+### 7. Get Notifications
+
+```http
+GET /api/notifications
+Authorization: Bearer access_token
+```
+
+### 8. Admin Dashboard
+
+```http
+GET /api/admin/dashboard/overview
+Authorization: Bearer admin_access_token
+```
+
+---
+
+## Frontend Quick Test Flow
+
+Sau khi chạy backend và frontend, mở:
+
+```txt
+http://localhost:5173
+```
+
+Test theo thứ tự:
+
+### 1. Register
+
+Mở:
+
+```txt
+http://localhost:5173/register
+```
+
+Đăng ký tài khoản mới.
+
+Kết quả:
+
+- Hiển thị thông báo đăng ký thành công
+- Nhận email xác thực
+
+### 2. Verify Email
+
+Bấm link trong email:
+
+```txt
+http://localhost:5173/verify-email?token=...
+```
+
+Kết quả:
+
+- Xác thực email thành công
+- Có thể đăng nhập
+
+### 3. Login
+
+Mở:
+
+```txt
+http://localhost:5173/login
+```
+
+Đăng nhập bằng tài khoản đã verify.
+
+Kết quả:
+
+- User thường chuyển đến `/profile`
+- Admin chuyển đến `/admin/dashboard`
+
+### 4. Profile
+
+Mở:
+
+```txt
+http://localhost:5173/profile
+```
+
+Test:
+
+- Cập nhật name, phone, address
+- Upload avatar
+- Xóa avatar
+
+### 5. Notifications
+
+Mở:
+
+```txt
+http://localhost:5173/notifications
+```
+
+Test:
+
+- Xem danh sách thông báo
+- Đánh dấu 1 thông báo đã đọc
+- Đánh dấu tất cả đã đọc
+- Lọc theo type / trạng thái
+
+### 6. Admin Dashboard
+
+Mở bằng tài khoản ADMIN:
+
+```txt
+http://localhost:5173/admin/dashboard
+```
+
+Test:
+
+- Xem tổng quan hệ thống
+- Xem user statistics
+- Xem file statistics
+- Xem system statistics
+- Xem recent activities
+
+### 7. Admin Users
+
+Mở:
+
+```txt
+http://localhost:5173/admin/users
+```
+
+Test:
+
+- Tìm kiếm user
+- Lọc user
+- Đổi role
+- Khóa / mở khóa user
+
+### 8. Admin Activity Logs
+
+Mở:
+
+```txt
+http://localhost:5173/admin/activity-logs
+```
+
+Test:
+
+- Tìm kiếm log
+- Lọc theo action / method / userId
+- Xem chi tiết log
+
+---
+
+## Demo Checklist
+
+Khi demo project, có thể demo theo thứ tự:
+
+```txt
+[ ] Đăng ký tài khoản mới
+[ ] Nhận email xác thực
+[ ] Xác thực email
+[ ] Đăng nhập
+[ ] Cập nhật profile
+[ ] Upload avatar
+[ ] Xem notification
+[ ] Admin xem dashboard
+[ ] Admin quản lý user
+[ ] Admin khóa / mở khóa user
+[ ] Admin gửi notification
+[ ] Admin xem activity log
+[ ] Forgot password
+[ ] Reset password qua email
+[ ] Logout
+```
