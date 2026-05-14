@@ -444,19 +444,353 @@ Hệ thống cần có khả năng tái sử dụng cho nhiều đồ án lớn 
 
 # 7. PHÂN QUYỀN NGƯỜI DÙNG
 
-*(Nội dung sẽ được điền sau)*
+Hệ thống được thiết kế với hai nhóm người dùng chính là USER và ADMIN. Việc phân quyền giúp đảm bảo người dùng chỉ được truy cập các chức năng phù hợp với vai trò của mình.
+
+## 7.1. Người dùng thường - USER
+
+Người dùng thường là người sử dụng hệ thống sau khi đăng ký và đăng nhập thành công. USER có thể thực hiện các chức năng cá nhân, quản lý thông tin của chính mình và sử dụng các chức năng cơ bản của hệ thống.
+
+Các quyền của USER bao gồm:
+
+- Đăng ký tài khoản.
+- Xác thực email.
+- Đăng nhập vào hệ thống.
+- Đăng xuất khỏi hệ thống.
+- Xem thông tin cá nhân.
+- Cập nhật thông tin cá nhân.
+- Upload avatar.
+- Xóa avatar.
+- Đổi mật khẩu.
+- Quên mật khẩu và đặt lại mật khẩu.
+- Xem danh sách notification của chính mình.
+- Đánh dấu notification đã đọc.
+- Upload file cá nhân.
+- Xem file do chính mình upload.
+- Xóa file do chính mình upload.
+
+USER không được phép truy cập các chức năng quản trị như quản lý người dùng, xem activity log toàn hệ thống hoặc xem admin dashboard.
+
+## 7.2. Quản trị viên - ADMIN
+
+ADMIN là người có quyền quản lý và giám sát hệ thống. Ngoài các quyền của USER, ADMIN có thêm các quyền quản trị.
+
+Các quyền của ADMIN bao gồm:
+
+- Xem danh sách tất cả người dùng.
+- Tìm kiếm, lọc và phân trang danh sách người dùng.
+- Xem chi tiết thông tin người dùng.
+- Đổi role người dùng.
+- Khóa hoặc mở khóa tài khoản người dùng.
+- Xem toàn bộ file upload trong hệ thống.
+- Xóa file của bất kỳ người dùng nào.
+- Gửi notification cho một người dùng.
+- Gửi notification hàng loạt.
+- Xem danh sách activity log.
+- Tìm kiếm, lọc và xem chi tiết activity log.
+- Xem dashboard thống kê hệ thống.
+- Gửi email test.
+- Theo dõi tình trạng hoạt động của hệ thống.
+
+## 7.3. Bảng phân quyền tổng quát
+
+| Chức năng | USER | ADMIN |
+|---|---|---:|---:|
+| Đăng ký | Có | Có |
+| Đăng nhập | Có | Có |
+| Xác thực email | Có | Có |
+| Quên mật khẩu | Có | Có |
+| Đổi mật khẩu | Có | Có |
+| Xem hồ sơ cá nhân | Có | Có |
+| Cập nhật hồ sơ cá nhân | Có | Có |
+| Upload avatar | Có | Có |
+| Xem notification cá nhân | Có | Có |
+| Upload file cá nhân | Có | Có |
+| Quản lý file của chính mình | Có | Có |
+| Xem danh sách tất cả user | Không | Có |
+| Đổi role user | Không | Có |
+| Khóa / mở khóa user | Không | Có |
+| Gửi notification cho user | Không | Có |
+| Broadcast notification | Không | Có |
+| Xem activity log toàn hệ thống | Không | Có |
+| Xem admin dashboard | Không | Có |
 
 ---
 
 # 8. SƠ ĐỒ USE CASE
 
-*(Nội dung sẽ được điền sau)*
+Sơ đồ Use Case mô tả các chức năng chính của hệ thống và mối quan hệ giữa tác nhân với hệ thống.
+
+## 8.1. Các tác nhân chính
+
+Hệ thống có hai tác nhân chính:
+
+### USER
+
+USER là người dùng thường của hệ thống. USER có thể đăng ký, đăng nhập, quản lý hồ sơ cá nhân, sử dụng chức năng quên mật khẩu, xem notification và upload file cá nhân.
+
+### ADMIN
+
+ADMIN là quản trị viên của hệ thống. ADMIN kế thừa các chức năng của USER và có thêm các chức năng quản trị như quản lý người dùng, xem dashboard, gửi notification và xem activity log.
+
+## 8.2. Danh sách Use Case chính
+
+### Nhóm Use Case của USER
+
+- Đăng ký tài khoản.
+- Xác thực email.
+- Đăng nhập.
+- Đăng xuất.
+- Quên mật khẩu.
+- Đặt lại mật khẩu.
+- Đổi mật khẩu.
+- Xem hồ sơ cá nhân.
+- Cập nhật hồ sơ cá nhân.
+- Upload avatar.
+- Xóa avatar.
+- Xem notification.
+- Đánh dấu notification đã đọc.
+- Upload file.
+- Xem file cá nhân.
+- Xóa file cá nhân.
+
+### Nhóm Use Case của ADMIN
+
+- Xem dashboard.
+- Xem danh sách người dùng.
+- Tìm kiếm và lọc người dùng.
+- Xem chi tiết người dùng.
+- Đổi role người dùng.
+- Khóa / mở khóa người dùng.
+- Gửi notification cho một user.
+- Broadcast notification.
+- Xem activity log.
+- Tìm kiếm và lọc activity log.
+- Xem chi tiết activity log.
+- Xem toàn bộ file upload.
+- Xóa file của user.
+
+## 8.3. Sơ đồ Use Case tổng quát
+
+```mermaid
+flowchart LR
+    USER[USER]
+    ADMIN[ADMIN]
+
+    UC1[Đăng ký]
+    UC2[Xác thực email]
+    UC3[Đăng nhập]
+    UC4[Đăng xuất]
+    UC5[Quên mật khẩu]
+    UC6[Đặt lại mật khẩu]
+    UC7[Đổi mật khẩu]
+    UC8[Quản lý hồ sơ cá nhân]
+    UC9[Upload avatar]
+    UC10[Xem notification]
+    UC11[Đánh dấu notification đã đọc]
+    UC12[Upload và quản lý file cá nhân]
+
+    UC13[Xem dashboard]
+    UC14[Quản lý người dùng]
+    UC15[Đổi role user]
+    UC16[Khóa / mở khóa user]
+    UC17[Gửi notification]
+    UC18[Broadcast notification]
+    UC19[Xem activity log]
+    UC20[Quản lý toàn bộ file]
+
+    USER --> UC1
+    USER --> UC2
+    USER --> UC3
+    USER --> UC4
+    USER --> UC5
+    USER --> UC6
+    USER --> UC7
+    USER --> UC8
+    USER --> UC9
+    USER --> UC10
+    USER --> UC11
+    USER --> UC12
+
+    ADMIN --> UC3
+    ADMIN --> UC4
+    ADMIN --> UC7
+    ADMIN --> UC8
+    ADMIN --> UC9
+    ADMIN --> UC10
+    ADMIN --> UC11
+    ADMIN --> UC12
+    ADMIN --> UC13
+    ADMIN --> UC14
+    ADMIN --> UC15
+    ADMIN --> UC16
+    ADMIN --> UC17
+    ADMIN --> UC18
+    ADMIN --> UC19
+    ADMIN --> UC20
+```
 
 ---
 
 # 9. ĐẶC TẢ USE CASE
 
-*(Nội dung sẽ được điền sau)*
+Phần này mô tả chi tiết một số Use Case quan trọng trong hệ thống. Mỗi Use Case bao gồm tác nhân, điều kiện trước, luồng xử lý chính và kết quả sau khi thực hiện.
+
+## 9.1. Use Case: Đăng ký tài khoản
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên Use Case | Đăng ký tài khoản |
+| Tác nhân | USER |
+| Mục tiêu | Cho phép người dùng tạo tài khoản mới |
+| Điều kiện trước | Người dùng chưa có tài khoản trong hệ thống |
+| Điều kiện sau | Tài khoản được tạo và email xác thực được gửi |
+
+### Luồng xử lý chính
+
+1. Người dùng mở trang đăng ký.
+2. Người dùng nhập họ tên, email và mật khẩu.
+3. Frontend kiểm tra dữ liệu nhập.
+4. Frontend gửi request đăng ký đến Backend.
+5. Backend kiểm tra email đã tồn tại hay chưa.
+6. Backend mã hóa mật khẩu bằng bcrypt.
+7. Backend tạo tài khoản mới với trạng thái chưa xác thực email.
+8. Backend tạo token xác thực email.
+9. Backend gửi email xác thực cho người dùng.
+10. Frontend hiển thị thông báo đăng ký thành công.
+
+### Luồng ngoại lệ
+
+- Nếu email đã tồn tại, hệ thống trả về thông báo lỗi.
+- Nếu dữ liệu nhập không hợp lệ, hệ thống yêu cầu nhập lại.
+- Nếu gửi email thất bại, hệ thống trả về lỗi tương ứng.
+
+## 9.2. Use Case: Đăng nhập
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên Use Case | Đăng nhập |
+| Tác nhân | USER, ADMIN |
+| Mục tiêu | Cho phép người dùng truy cập hệ thống |
+| Điều kiện trước | Người dùng đã có tài khoản hợp lệ |
+| Điều kiện sau | Người dùng nhận được access token và refresh token |
+
+### Luồng xử lý chính
+
+1. Người dùng mở trang đăng nhập.
+2. Người dùng nhập email và mật khẩu.
+3. Frontend gửi request đăng nhập đến Backend.
+4. Backend kiểm tra email có tồn tại hay không.
+5. Backend kiểm tra mật khẩu bằng bcrypt.
+6. Backend kiểm tra tài khoản có bị khóa hay không.
+7. Backend kiểm tra tài khoản local đã xác thực email hay chưa.
+8. Backend tạo access token và refresh token.
+9. Backend lưu refresh token vào database.
+10. Backend trả token và thông tin user về Frontend.
+11. Frontend lưu token vào localStorage.
+12. Nếu user là ADMIN thì chuyển đến trang admin dashboard.
+13. Nếu user là USER thì chuyển đến trang profile.
+
+### Luồng ngoại lệ
+
+- Nếu email hoặc mật khẩu sai, hệ thống trả về lỗi.
+- Nếu tài khoản chưa xác thực email, hệ thống yêu cầu xác thực.
+- Nếu tài khoản bị khóa, hệ thống không cho đăng nhập.
+
+## 9.3. Use Case: Quên mật khẩu và đặt lại mật khẩu
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên Use Case | Quên mật khẩu và đặt lại mật khẩu |
+| Tác nhân | USER, ADMIN |
+| Mục tiêu | Cho phép người dùng đặt lại mật khẩu khi quên |
+| Điều kiện trước | Người dùng có tài khoản local trong hệ thống |
+| Điều kiện sau | Mật khẩu mới được cập nhật |
+
+### Luồng xử lý chính
+
+1. Người dùng mở trang quên mật khẩu.
+2. Người dùng nhập email.
+3. Frontend gửi request quên mật khẩu đến Backend.
+4. Backend kiểm tra tài khoản.
+5. Backend tạo reset password token.
+6. Backend lưu token và thời hạn vào database.
+7. Backend gửi link reset password qua email.
+8. Người dùng bấm link trong email.
+9. Frontend mở trang reset password kèm token.
+10. Người dùng nhập mật khẩu mới.
+11. Frontend gửi request reset password đến Backend.
+12. Backend kiểm tra token hợp lệ và còn hạn.
+13. Backend mã hóa mật khẩu mới.
+14. Backend cập nhật mật khẩu.
+15. Backend xóa reset password token.
+16. Backend thu hồi refresh token cũ.
+17. Backend gửi email cảnh báo bảo mật.
+18. Người dùng đăng nhập lại bằng mật khẩu mới.
+
+### Luồng ngoại lệ
+
+- Nếu email không tồn tại, hệ thống không tiết lộ trực tiếp để tăng bảo mật.
+- Nếu token sai hoặc hết hạn, hệ thống báo lỗi.
+- Nếu tài khoản đăng nhập bằng Google/Facebook, hệ thống không cho reset password bằng cách này.
+
+## 9.4. Use Case: Khóa / mở khóa tài khoản người dùng
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên Use Case | Khóa / mở khóa tài khoản người dùng |
+| Tác nhân | ADMIN |
+| Mục tiêu | Cho phép admin kiểm soát trạng thái tài khoản |
+| Điều kiện trước | Admin đã đăng nhập |
+| Điều kiện sau | Trạng thái tài khoản user được cập nhật |
+
+### Luồng xử lý chính
+
+1. Admin mở trang quản lý người dùng.
+2. Admin tìm user cần khóa hoặc mở khóa.
+3. Admin bấm nút khóa hoặc mở khóa.
+4. Frontend gửi request cập nhật trạng thái đến Backend.
+5. Backend kiểm tra quyền ADMIN.
+6. Backend kiểm tra admin không tự khóa chính mình.
+7. Backend cập nhật status của user.
+8. Nếu user bị khóa, Backend thu hồi refresh token của user.
+9. Backend gửi email thông báo cho user.
+10. Backend tạo notification trong hệ thống cho user.
+11. Backend ghi activity log.
+12. Frontend cập nhật lại danh sách user.
+
+### Luồng ngoại lệ
+
+- Nếu user không tồn tại, hệ thống trả về lỗi.
+- Nếu admin tự khóa chính mình, hệ thống từ chối thao tác.
+- Nếu user thường gọi API này, hệ thống từ chối quyền truy cập.
+
+## 9.5. Use Case: Xem activity log
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên Use Case | Xem activity log |
+| Tác nhân | ADMIN |
+| Mục tiêu | Cho phép admin theo dõi các hoạt động quan trọng |
+| Điều kiện trước | Admin đã đăng nhập |
+| Điều kiện sau | Danh sách log hoặc chi tiết log được hiển thị |
+
+### Luồng xử lý chính
+
+1. Admin mở trang Activity Logs.
+2. Frontend gọi API lấy danh sách activity log.
+3. Backend kiểm tra quyền ADMIN.
+4. Backend truy vấn danh sách log từ database.
+5. Backend trả dữ liệu log kèm thông tin user.
+6. Frontend hiển thị log dưới dạng bảng.
+7. Admin có thể tìm kiếm theo action, details hoặc path.
+8. Admin có thể lọc theo userId, action và method.
+9. Admin có thể bấm xem chi tiết một log.
+10. Frontend hiển thị modal chi tiết log.
+
+### Luồng ngoại lệ
+
+- Nếu user không phải ADMIN, hệ thống chuyển về trang profile hoặc trả lỗi không có quyền.
+- Nếu log không tồn tại, hệ thống trả về thông báo không tìm thấy.
 
 ---
 
