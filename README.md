@@ -929,3 +929,266 @@ Khi demo project, có thể demo theo thứ tự:
 [ ] Reset password qua email
 [ ] Logout
 ```
+
+---
+
+## Main System Flows
+
+### 1. Register and Verify Email Flow
+
+```txt
+User nhập thông tin đăng ký
+        ↓
+Frontend gọi POST /api/auth/register
+        ↓
+Backend kiểm tra email đã tồn tại chưa
+        ↓
+Backend hash password bằng bcrypt
+        ↓
+Backend tạo verifyEmailToken
+        ↓
+Backend lưu user với isVerified = false
+        ↓
+Backend gửi email xác thực bằng Nodemailer
+        ↓
+User bấm link xác thực trong email
+        ↓
+Frontend mở /verify-email?token=...
+        ↓
+Frontend gọi GET /api/auth/verify-email?token=...
+        ↓
+Backend kiểm tra token
+        ↓
+Backend cập nhật isVerified = true
+        ↓
+User có thể đăng nhập
+```
+
+**Ý nghĩa:**
+
+- Tài khoản local phải xác thực email mới được đăng nhập.
+- Google/Facebook login được xem là đã xác thực.
+- Token xác thực email có thời hạn để tăng bảo mật.
+
+### 2. JWT Login Flow
+
+```txt
+User nhập email và password
+        ↓
+Frontend gọi POST /api/auth/login
+        ↓
+Backend kiểm tra email
+        ↓
+Backend kiểm tra password bằng bcrypt
+        ↓
+Backend kiểm tra user có bị BLOCKED không
+        ↓
+Backend kiểm tra user local đã verify email chưa
+        ↓
+Backend tạo accessToken và refreshToken
+        ↓
+Backend lưu refreshToken vào database
+        ↓
+Backend trả token và user information
+        ↓
+Frontend lưu token vào localStorage
+        ↓
+Frontend chuyển user đến /profile hoặc /admin/dashboard
+```
+
+**Token:**
+
+- `accessToken`: dùng để gọi API cần đăng nhập
+- `refreshToken`: dùng để cấp lại accessToken hoặc logout
+
+### 3. Forgot Password and Reset Password Flow
+
+```txt
+User nhập email quên mật khẩu
+        ↓
+Frontend gọi POST /api/auth/forgot-password
+        ↓
+Backend kiểm tra tài khoản local
+        ↓
+Backend tạo resetPasswordToken
+        ↓
+Backend lưu token và thời hạn trong database
+        ↓
+Backend gửi email reset password
+        ↓
+User bấm link trong email
+        ↓
+Frontend mở /reset-password?token=...
+        ↓
+User nhập mật khẩu mới
+        ↓
+Frontend gọi POST /api/auth/reset-password
+        ↓
+Backend kiểm tra token
+        ↓
+Backend hash mật khẩu mới
+        ↓
+Backend cập nhật password
+        ↓
+Backend xóa resetPasswordToken
+        ↓
+Backend thu hồi refresh token cũ
+        ↓
+Backend gửi email cảnh báo bảo mật
+        ↓
+User đăng nhập lại bằng mật khẩu mới
+```
+
+**Ý nghĩa:**
+
+- Backend không trả reset token trực tiếp trong response.
+- Reset token chỉ được gửi qua email.
+- Sau khi reset mật khẩu, các phiên đăng nhập cũ bị thu hồi.
+
+### 4. Upload File Flow
+
+```txt
+User chọn file trên frontend
+        ↓
+Frontend tạo FormData
+        ↓
+Frontend gọi POST /api/uploads/single hoặc /api/uploads/multiple
+        ↓
+Backend kiểm tra JWT
+        ↓
+Multer kiểm tra loại file và dung lượng
+        ↓
+Backend lưu file vào thư mục uploads/{folder}
+        ↓
+Backend lưu metadata vào bảng UploadedFile
+        ↓
+Backend trả fileUrl
+        ↓
+Frontend hiển thị hoặc sử dụng fileUrl
+```
+
+**Metadata được lưu:**
+
+- `originalName`, `fileName`, `filePath`, `fileUrl`
+- `mimeType`, `size`, `folder`, `type`
+- `uploadedById`
+
+**Quyền truy cập:**
+
+- User thường chỉ xem / xóa file của mình.
+- Admin xem / xóa được tất cả file.
+
+### 5. Notification Flow
+
+```txt
+Hệ thống hoặc admin tạo notification
+        ↓
+Notification được lưu vào database
+        ↓
+User gọi GET /api/notifications
+        ↓
+Frontend hiển thị danh sách thông báo
+        ↓
+User có thể đánh dấu 1 thông báo đã đọc
+        ↓
+User có thể đánh dấu tất cả thông báo đã đọc
+```
+
+**Notification được tạo trong các trường hợp:**
+
+- Admin gửi thông báo cho 1 user.
+- Admin broadcast thông báo.
+- Admin đổi role user.
+- Admin khóa / mở khóa user.
+
+**Notification types:**
+
+- `SYSTEM`, `SECURITY`, `ACCOUNT`, `ORDER`
+- `APPOINTMENT`, `COURSE`, `OTHER`
+
+### 6. Activity Log Flow
+
+```txt
+User hoặc admin thực hiện hành động quan trọng
+        ↓
+Backend gọi createActivityLog()
+        ↓
+Log được lưu vào bảng ActivityLog
+        ↓
+Admin gọi GET /api/admin/activity-logs
+        ↓
+Frontend hiển thị bảng activity log
+        ↓
+Admin có thể tìm kiếm, lọc và xem chi tiết log
+```
+
+**Các hành động đang được ghi log:**
+
+- `LOGIN`, `LOGOUT`, `CHANGE_PASSWORD`, `RESET_PASSWORD`
+- `UPLOAD_FILE`, `UPLOAD_MULTIPLE_FILES`, `DELETE_FILE`
+- `UPDATE_USER_ROLE`, `UPDATE_USER_STATUS`
+- `SEND_NOTIFICATION_TO_USER`, `BROADCAST_NOTIFICATION`
+
+**Mỗi log lưu:**
+
+- `userId`, `action`, `method`, `path`, `ip`
+- `userAgent`, `details`, `createdAt`
+
+### 7. Admin Lock / Unlock User Flow
+
+```txt
+Admin chọn user cần khóa / mở khóa
+        ↓
+Frontend gọi PATCH /api/admin/users/:id/status
+        ↓
+Backend kiểm tra quyền ADMIN
+        ↓
+Backend kiểm tra admin không tự khóa chính mình
+        ↓
+Backend cập nhật status user
+        ↓
+Nếu BLOCKED thì thu hồi refresh token của user
+        ↓
+Backend gửi email thông báo cho user
+        ↓
+Backend tạo notification cho user
+        ↓
+Backend ghi activity log
+        ↓
+Frontend cập nhật lại danh sách user
+```
+
+**Ý nghĩa:**
+
+- User bị khóa không thể login.
+- User bị khóa sẽ nhận email thông báo.
+- Khi mở khóa, user có thể login lại.
+
+### 8. Admin Dashboard Flow
+
+```txt
+Admin đăng nhập
+        ↓
+Frontend kiểm tra user.role === ADMIN
+        ↓
+Admin truy cập /admin/dashboard
+        ↓
+Frontend gọi các dashboard APIs
+        ↓
+Backend tổng hợp số liệu từ nhiều bảng
+        ↓
+Frontend hiển thị card thống kê và hoạt động gần đây
+```
+
+**Dashboard lấy dữ liệu từ:**
+
+- `User`, `UploadedFile`, `Notification`, `ActivityLog`
+
+**Các nhóm thống kê:**
+
+- Overview statistics
+- User statistics
+- File statistics
+- Notification statistics
+- Activity log statistics
+- Recent activities
