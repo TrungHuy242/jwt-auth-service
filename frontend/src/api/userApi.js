@@ -1,27 +1,17 @@
-import apiClient from '../utils/apiClient';
+import axiosClient from "../api/axiosClient";
 
 export const userApi = {
-  getMyProfile: async () => {
-    const response = await apiClient.get('/api/users/me');
-    return response.data;
-  },
+  getMyProfile: async () => axiosClient.get("/api/users/me"),
 
-  updateMyProfile: async (data) => {
-    const response = await apiClient.patch('/api/users/me', data);
-    return response.data;
-  },
+  updateMyProfile: async (data) =>
+    axiosClient.patch("/api/users/me", data),
 
-  updateAvatar: async (formData) => {
-    const response = await apiClient.patch('/api/users/me/avatar', formData, {
+  updateAvatar: async (formData) =>
+    axiosClient.patch("/api/users/me/avatar", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
-    });
-    return response.data;
-  },
+    }),
 
-  deleteAvatar: async () => {
-    const response = await apiClient.delete('/api/users/me/avatar');
-    return response.data;
-  },
+  deleteAvatar: async () => axiosClient.delete("/api/users/me/avatar"),
 };

@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authApi } from '../api/authApi';
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { authApi } from "../api/authApi";
+import { tokenUtils } from "../utils/token";
+import { AUTH_EVENTS } from "../utils/authEvents";
 
 const AuthContext = createContext(null);
 
@@ -8,8 +10,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   const loadCurrentUser = useCallback(async () => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
+    if (!tokenUtils.isAuthenticated()) {
       setLoading(false);
       return;
     }
@@ -17,10 +18,10 @@ export function AuthProvider({ children }) {
     try {
       const response = await authApi.getMe();
       setUser(response.user);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      localStorage.setItem("user", JSON.stringify(response.user));
     } catch (error) {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
+      tokenUtils.clearTokens();
+      localStorage.removeItem("user");
       setUser(null);
     } finally {
       setLoading(false);
@@ -29,13 +30,25 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     loadCurrentUser();
+
+    const handleSessionExpired = () => {
+      tokenUtils.clearTokens();
+      localStorage.removeItem("user");
+      setUser(null);
+    };
+
+    window.addEventListener(AUTH_EVENTS.SESSION_EXPIRED, handleSessionExpired);
+
+    return () => {
+      window.removeEventListener(AUTH_EVENTS.SESSION_EXPIRED, handleSessionExpired);
+    };
   }, [loadCurrentUser]);
 
   const login = async (email, password) => {
     const response = await authApi.login({ email, password });
-    const { accessToken, user: userData } = response;
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('user', JSON.stringify(userData));
+    const { accessToken, refreshToken, user: userData } = response;
+    tokenUtils.setTokens({ accessToken, refreshToken });
+    localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     return response;
   };
@@ -46,8 +59,8 @@ export function AuthProvider({ children }) {
     } catch (error) {
       // ignore logout API errors
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('user');
+      tokenUtils.clearTokens();
+      localStorage.removeItem("user");
       setUser(null);
     }
   };
@@ -60,7 +73,7 @@ export function AuthProvider({ children }) {
     logout,
     loadCurrentUser,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'ADMIN',
+    isAdmin: user?.role === "ADMIN",
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -69,7 +82,7 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

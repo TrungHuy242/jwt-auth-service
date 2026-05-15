@@ -1,53 +1,29 @@
-import apiClient from '../utils/apiClient';
+import axiosClient from "../api/axiosClient";
 
 export const authApi = {
-  register: async (data) => {
-    const response = await apiClient.post('/api/auth/register', data);
-    return response.data;
-  },
+  register: async (data) => axiosClient.post("/api/auth/register", data),
 
-  login: async (data) => {
-    const response = await apiClient.post('/api/auth/login', data);
-    return response.data;
-  },
+  login: async (data) => axiosClient.post("/api/auth/login", data),
 
-  logout: async () => {
-    const response = await apiClient.post('/api/auth/logout');
-    return response.data;
-  },
+  logout: async () => axiosClient.post("/api/auth/logout"),
 
-  getMe: async () => {
-    const response = await apiClient.get('/api/auth/me');
-    return response.data;
-  },
+  getMe: async () => axiosClient.get("/api/auth/me"),
 
-  refreshToken: async () => {
-    const response = await apiClient.post('/api/auth/refresh-token');
-    return response.data;
-  },
+  refreshToken: async (refreshToken) =>
+    axiosClient.post("/api/auth/refresh-token", { refreshToken }),
 
-  changePassword: async (data) => {
-    const response = await apiClient.patch('/api/auth/change-password', data);
-    return response.data;
-  },
+  changePassword: async (data) =>
+    axiosClient.patch("/api/auth/change-password", data),
 
-  verifyEmail: async (token) => {
-    const response = await apiClient.get(`/api/auth/verify-email?token=${token}`);
-    return response.data;
-  },
+  verifyEmail: async (token) =>
+    axiosClient.get(`/api/auth/verify-email?token=${token}`),
 
-  resendVerificationEmail: async (email) => {
-    const response = await apiClient.post('/api/auth/resend-verification-email', { email });
-    return response.data;
-  },
+  resendVerificationEmail: async (email) =>
+    axiosClient.post("/api/auth/resend-verification-email", { email }),
 
-  forgotPassword: async (email) => {
-    const response = await apiClient.post('/api/auth/forgot-password', { email });
-    return response.data;
-  },
+  forgotPassword: async (email) =>
+    axiosClient.post("/api/auth/forgot-password", { email }),
 
-  resetPassword: async (data) => {
-    const response = await apiClient.post('/api/auth/reset-password', data);
-    return response.data;
-  },
+  resetPassword: async (data) =>
+    axiosClient.post("/api/auth/reset-password", data),
 };

@@ -1,55 +1,35 @@
-import apiClient from '../utils/apiClient';
+import axiosClient from "../api/axiosClient";
 
 export const adminApi = {
-  getDashboardOverview: async () => {
-    const response = await apiClient.get('/api/admin/dashboard/overview');
-    return response.data;
-  },
+  getDashboardOverview: async () =>
+    axiosClient.get("/api/admin/dashboard/overview"),
 
-  getUserStatistics: async () => {
-    const response = await apiClient.get('/api/admin/dashboard/users');
-    return response.data;
-  },
+  getUserStatistics: async () =>
+    axiosClient.get("/api/admin/dashboard/users"),
 
-  getFileStatistics: async () => {
-    const response = await apiClient.get('/api/admin/dashboard/files');
-    return response.data;
-  },
+  getFileStatistics: async () =>
+    axiosClient.get("/api/admin/dashboard/files"),
 
-  getSystemStatistics: async () => {
-    const response = await apiClient.get('/api/admin/dashboard/system');
-    return response.data;
-  },
+  getSystemStatistics: async () =>
+    axiosClient.get("/api/admin/dashboard/system"),
 
-  getRecentActivities: async ({ limit = 5 } = {}) => {
-    const response = await apiClient.get('/api/admin/dashboard/recent-activities', {
+  getRecentActivities: async ({ limit = 5 } = {}) =>
+    axiosClient.get("/api/admin/dashboard/recent-activities", {
       params: { limit },
-    });
-    return response.data;
-  },
+    }),
 
-  getUsers: async (params = {}) => {
-    const response = await apiClient.get('/api/admin/users', { params });
-    return response.data;
-  },
+  getUsers: async (params = {}) =>
+    axiosClient.get("/api/admin/users", { params }),
 
-  updateUserRole: async (userId, newRole) => {
-    const response = await apiClient.patch(`/api/admin/users/${userId}/role`, { role: newRole });
-    return response.data;
-  },
+  updateUserRole: async (userId, newRole) =>
+    axiosClient.patch(`/api/admin/users/${userId}/role`, { role: newRole }),
 
-  updateUserStatus: async (userId, newStatus) => {
-    const response = await apiClient.patch(`/api/admin/users/${userId}/status`, { status: newStatus });
-    return response.data;
-  },
+  updateUserStatus: async (userId, newStatus) =>
+    axiosClient.patch(`/api/admin/users/${userId}/status`, { status: newStatus }),
 
-  getActivityLogs: async (params = {}) => {
-    const response = await apiClient.get('/api/admin/activity-logs', { params });
-    return response.data;
-  },
+  getActivityLogs: async (params = {}) =>
+    axiosClient.get("/api/admin/activity-logs", { params }),
 
-  getActivityLogById: async (id) => {
-    const response = await apiClient.get(`/api/admin/activity-logs/${id}`);
-    return response.data;
-  },
+  getActivityLogById: async (id) =>
+    axiosClient.get(`/api/admin/activity-logs/${id}`),
 };

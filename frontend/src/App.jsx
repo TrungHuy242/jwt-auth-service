@@ -1,5 +1,8 @@
-import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { useToast } from "./context/ToastContext";
+import { AUTH_EVENTS } from "./utils/authEvents";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import LoginPage from "./pages/LoginPage";
@@ -139,6 +142,22 @@ function AdminRoute({ children }) {
 }
 
 function AppLayout({ children }) {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      navigate("/login", { replace: true });
+    };
+
+    window.addEventListener(AUTH_EVENTS.SESSION_EXPIRED, handleSessionExpired);
+
+    return () => {
+      window.removeEventListener(AUTH_EVENTS.SESSION_EXPIRED, handleSessionExpired);
+    };
+  }, [navigate, toast]);
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
