@@ -2,10 +2,13 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -41,10 +44,17 @@ function LoginPage() {
     try {
       setLoading(true);
       setError("");
-      await login(formData.email, formData.password);
-      navigate("/profile");
+      const response = await login(formData.email, formData.password);
+      toast.success(getSuccessMessage(response, "Đăng nhập thành công"));
+      if (response?.user?.role === "ADMIN") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/profile");
+      }
     } catch (error) {
-      setError(error.response?.data?.message || "Đăng nhập thất bại");
+      const message = getErrorMessage(error, "Đăng nhập thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

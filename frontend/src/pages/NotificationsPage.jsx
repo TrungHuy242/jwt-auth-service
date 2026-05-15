@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Bell, CheckCheck, RefreshCcw } from "lucide-react";
 import { notificationApi } from "../api/notificationApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 const notificationTypes = [
   "",
@@ -14,6 +16,8 @@ const notificationTypes = [
 ];
 
 function NotificationsPage() {
+  const { toast } = useToast();
+
   const [notifications, setNotifications] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -65,7 +69,9 @@ function NotificationsPage() {
       setNotifications(response.notifications || []);
       setPagination(response.pagination);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Không thể tải danh sách thông báo");
+      const message = getErrorMessage(error, "Không thể tải danh sách thông báo");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -96,11 +102,15 @@ function NotificationsPage() {
 
       const response = await notificationApi.markAsRead(id);
 
-      setSuccessMessage(response.message || "Đánh dấu thông báo đã đọc");
+      const message = getSuccessMessage(response, "Đánh dấu thông báo đã đọc");
+      setSuccessMessage(message);
+      toast.success(message);
       await fetchNotifications(pagination.page);
       await fetchUnreadCount();
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Không thể đánh dấu thông báo");
+      const message = getErrorMessage(error, "Không thể đánh dấu thông báo");
+      setError(message);
+      toast.error(message);
     } finally {
       setActionLoading(false);
     }
@@ -114,14 +124,15 @@ function NotificationsPage() {
 
       const response = await notificationApi.markAllAsRead();
 
-      setSuccessMessage(
-        `${response.message || "Đánh dấu tất cả đã đọc"} (${response.updatedCount || 0})`
-      );
-
+      const message = `${getSuccessMessage(response, "Đánh dấu tất cả đã đọc")} (${response.updatedCount || 0})`;
+      setSuccessMessage(message);
+      toast.success(message);
       await fetchNotifications(pagination.page);
       await fetchUnreadCount();
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Không thể đánh dấu tất cả thông báo");
+      const message = getErrorMessage(error, "Không thể đánh dấu tất cả thông báo");
+      setError(message);
+      toast.error(message);
     } finally {
       setActionLoading(false);
     }

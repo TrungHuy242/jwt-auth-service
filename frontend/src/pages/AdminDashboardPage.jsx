@@ -9,6 +9,8 @@ import {
   Users,
 } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage } from "../utils/toastMessage";
 
 function StatCard({ title, value, icon: Icon, description }) {
   return (
@@ -59,6 +61,8 @@ function SmallList({ title, items, labelKey, countKey }) {
 }
 
 function AdminDashboardPage() {
+  const { toast } = useToast();
+
   const [overview, setOverview] = useState(null);
   const [userStats, setUserStats] = useState(null);
   const [fileStats, setFileStats] = useState(null);
@@ -93,12 +97,17 @@ function AdminDashboardPage() {
       setSystemStats(systemStatsRes.statistics);
       setRecent(recentRes.recent);
     } catch (error) {
-      setError(
-        error.response?.data?.message || error.message || "Không thể tải dashboard"
-      );
+      const message = getErrorMessage(error, "Không thể tải dashboard");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefreshDashboard = async () => {
+    await fetchDashboard();
+    toast.success("Tải lại dashboard thành công");
   };
 
   useEffect(() => {
@@ -118,7 +127,7 @@ function AdminDashboardPage() {
         </div>
 
         <button
-          onClick={fetchDashboard}
+          onClick={handleRefreshDashboard}
           disabled={loading}
           className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
         >

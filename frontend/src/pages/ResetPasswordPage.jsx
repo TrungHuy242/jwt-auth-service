@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
 import { authApi } from "../api/authApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const { toast } = useToast();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -16,7 +19,9 @@ function ResetPasswordPage() {
 
   useEffect(() => {
     if (!token) {
-      setMessage({ type: "error", text: "Token không hợp lệ hoặc đã hết hạn" });
+      const msg = "Token không hợp lệ hoặc đã hết hạn";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
     }
   }, [token]);
 
@@ -24,56 +29,73 @@ function ResetPasswordPage() {
     event.preventDefault();
 
     if (!token) {
-      setMessage({ type: "error", text: "Token không hợp lệ hoặc đã hết hạn" });
+      const msg = "Token không hợp lệ hoặc đã hết hạn";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (!password) {
-      setMessage({ type: "error", text: "Vui lòng nhập mật khẩu mới" });
+      const msg = "Vui lòng nhập mật khẩu mới";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (password.length < 8) {
-      setMessage({ type: "error", text: "Mật khẩu phải có ít nhất 8 ký tự" });
+      const msg = "Mật khẩu phải có ít nhất 8 ký tự";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (!/[A-Z]/.test(password)) {
-      setMessage({ type: "error", text: "Mật khẩu phải chứa ít nhất 1 chữ hoa" });
+      const msg = "Mật khẩu phải chứa ít nhất 1 chữ hoa";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (!/[a-z]/.test(password)) {
-      setMessage({ type: "error", text: "Mật khẩu phải chứa ít nhất 1 chữ thường" });
+      const msg = "Mật khẩu phải chứa ít nhất 1 chữ thường";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (!/\d/.test(password)) {
-      setMessage({ type: "error", text: "Mật khẩu phải chứa ít nhất 1 số" });
+      const msg = "Mật khẩu phải chứa ít nhất 1 số";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      setMessage({ type: "error", text: "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt" });
+      const msg = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     if (password !== confirmPassword) {
-      setMessage({ type: "error", text: "Mật khẩu xác nhận không khớp" });
+      const msg = "Mật khẩu xác nhận không khớp";
+      setMessage({ type: "error", text: msg });
+      toast.warning(msg);
       return;
     }
 
     try {
       setLoading(true);
       setMessage({ type: "", text: "" });
-      await authApi.resetPassword({ resetToken: token, newPassword: password });
+      const response = await authApi.resetPassword({ resetToken: token, newPassword: password });
+      const msg = getSuccessMessage(response, "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.");
       setSuccess(true);
-      setMessage({ type: "success", text: "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay." });
+      setMessage({ type: "success", text: msg });
+      toast.success(msg);
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại.",
-      });
+      const msg = getErrorMessage(error, "Có lỗi xảy ra. Vui lòng thử lại.");
+      setMessage({ type: "error", text: msg });
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Activity, Eye, RefreshCcw, Search, X } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 const actionOptions = [
   "",
@@ -20,6 +22,8 @@ const actionOptions = [
 const methodOptions = ["", "GET", "POST", "PATCH", "PUT", "DELETE"];
 
 function AdminActivityLogsPage() {
+  const { toast } = useToast();
+
   const [logs, setLogs] = useState([]);
   const [selectedLog, setSelectedLog] = useState(null);
 
@@ -72,7 +76,9 @@ function AdminActivityLogsPage() {
       setLogs(response.logs || []);
       setPagination(response.pagination);
     } catch (error) {
-      setError(error.message || "Không thể tải activity logs");
+      const message = getErrorMessage(error, "Không thể tải activity logs");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -115,8 +121,11 @@ function AdminActivityLogsPage() {
       const response = await adminApi.getActivityLogById(id);
 
       setSelectedLog(response.log);
+      toast.info("Đã tải chi tiết activity log");
     } catch (error) {
-      setError(error.message || "Không thể lấy chi tiết activity log");
+      const message = getErrorMessage(error, "Không thể lấy chi tiết activity log");
+      setError(message);
+      toast.error(message);
     } finally {
       setDetailLoading(false);
     }

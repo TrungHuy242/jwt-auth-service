@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 import { authApi } from "../api/authApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function RegisterPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -87,12 +90,19 @@ function RegisterPage() {
         password: formData.password,
       });
 
-      setSuccessMessage("Đăng ký thành công! Vui lòng đăng nhập.");
+      const message = getSuccessMessage(
+        response,
+        "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản."
+      );
+      setSuccessMessage(message);
+      toast.success(message);
       setTimeout(() => {
         navigate("/login");
       }, 1500);
     } catch (error) {
-      setError(error.response?.data?.message || "Đăng ký thất bại");
+      const message = getErrorMessage(error, "Đăng ký thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

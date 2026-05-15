@@ -2,8 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
 import { authApi } from "../api/authApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function ForgotPasswordPage() {
+  const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -20,12 +23,13 @@ function ForgotPasswordPage() {
       setLoading(true);
       setMessage({ type: "", text: "" });
       const response = await authApi.forgotPassword(email);
-      setMessage({ type: "success", text: response.message || "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu" });
+      const msg = getSuccessMessage(response, "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu");
+      setMessage({ type: "success", text: msg });
+      toast.success(msg);
     } catch (error) {
-      setMessage({
-        type: "error",
-        text: error.response?.data?.message || "Có lỗi xảy ra. Vui lòng thử lại.",
-      });
+      const msg = getErrorMessage(error, "Có lỗi xảy ra. Vui lòng thử lại.");
+      setMessage({ type: "error", text: msg });
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

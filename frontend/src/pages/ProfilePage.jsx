@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { Camera, Save, Trash2, UserCircle } from "lucide-react";
 import { userApi } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function ProfilePage() {
   const { user, setUser, loadCurrentUser } = useAuth();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -64,10 +67,14 @@ function ProfilePage() {
         address: formData.address,
       });
 
+      const message = getSuccessMessage(response, "Cập nhật hồ sơ thành công");
       setUser(response.user);
-      setSuccessMessage(response.message || "Cập nhật hồ sơ thành công");
+      setSuccessMessage(message);
+      toast.success(message);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Cập nhật hồ sơ thất bại");
+      const message = getErrorMessage(error, "Cập nhật hồ sơ thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setProfileLoading(false);
     }
@@ -102,12 +109,16 @@ function ProfilePage() {
 
       const response = await userApi.updateAvatar(formDataUpload);
 
+      const message = getSuccessMessage(response, "Cập nhật avatar thành công");
       setUser(response.user);
       setAvatarFile(null);
       setPreviewAvatar(response.user.avatar || "");
-      setSuccessMessage(response.message || "Cập nhật avatar thành công");
+      setSuccessMessage(message);
+      toast.success(message);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Upload avatar thất bại");
+      const message = getErrorMessage(error, "Upload avatar thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setAvatarLoading(false);
     }
@@ -125,12 +136,16 @@ function ProfilePage() {
 
       const response = await userApi.deleteAvatar();
 
+      const message = getSuccessMessage(response, "Xóa avatar thành công");
       setUser(response.user);
       setAvatarFile(null);
       setPreviewAvatar("");
-      setSuccessMessage(response.message || "Xóa avatar thành công");
+      setSuccessMessage(message);
+      toast.success(message);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Xóa avatar thất bại");
+      const message = getErrorMessage(error, "Xóa avatar thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setAvatarLoading(false);
     }
@@ -141,8 +156,11 @@ function ProfilePage() {
       setProfileLoading(true);
       await loadCurrentUser();
       setSuccessMessage("Tải lại thông tin thành công");
+      toast.success("Tải lại thông tin thành công");
     } catch (error) {
-      setError("Không thể tải lại thông tin user");
+      const message = "Không thể tải lại thông tin user";
+      setError(message);
+      toast.error(message);
     } finally {
       setProfileLoading(false);
     }

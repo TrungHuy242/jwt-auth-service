@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { authApi } from "../api/authApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const { toast } = useToast();
 
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -20,11 +23,15 @@ function VerifyEmailPage() {
     const verify = async () => {
       try {
         const response = await authApi.verifyEmail(token);
+        const msg = getSuccessMessage(response, "Xác thực email thành công. Bạn có thể đăng nhập.");
         setStatus("success");
-        setMessage(response.message || "Xác thực email thành công. Bạn có thể đăng nhập.");
+        setMessage(msg);
+        toast.success(msg);
       } catch (error) {
+        const msg = getErrorMessage(error, "Xác thực email thất bại. Token có thể đã hết hạn.");
         setStatus("error");
-        setMessage(error.response?.data?.message || "Xác thực email thất bại. Token có thể đã hết hạn.");
+        setMessage(msg);
+        toast.error(msg);
       }
     };
 

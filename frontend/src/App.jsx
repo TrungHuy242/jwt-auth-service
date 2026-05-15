@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
-import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import LoginPage from "./pages/LoginPage";
@@ -216,13 +216,7 @@ function AppRoutes() {
 }
 
 function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
-  );
+  return <AppRoutes />;
 }
 
 export default App;

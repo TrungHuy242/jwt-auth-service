@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { RefreshCcw, Search, Shield, UserCog } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { useToast } from "../context/ToastContext";
+import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function AdminUsersPage() {
+  const { toast } = useToast();
+
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -54,7 +58,9 @@ function AdminUsersPage() {
       setUsers(response.users || []);
       setPagination(response.pagination);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Khong the tai danh sach nguoi dung");
+      const message = getErrorMessage(error, "Không thể tải danh sách người dùng");
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -86,7 +92,7 @@ function AdminUsersPage() {
   };
 
   const handleUpdateRole = async (userId, newRole) => {
-    if (!window.confirm(`Ban co chan muon doi role user nay thanh ${newRole}?`)) {
+    if (!window.confirm(`Bạn có chắc muốn đổi role user này thành ${newRole}?`)) {
       return;
     }
 
@@ -97,19 +103,23 @@ function AdminUsersPage() {
 
       const response = await adminApi.updateUserRole(userId, newRole);
 
-      setSuccessMessage(response.message || "Cap nhat role thanh cong");
+      const message = getSuccessMessage(response, "Cập nhật role thành công");
+      setSuccessMessage(message);
+      toast.success(message);
       await fetchUsers(pagination.page);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Cap nhat role that bai");
+      const message = getErrorMessage(error, "Cập nhật role thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleUpdateStatus = async (userId, newStatus) => {
-    const text = newStatus === "BLOCKED" ? "khoa" : "mo khoa";
+    const text = newStatus === "BLOCKED" ? "khóa" : "mở khóa";
 
-    if (!window.confirm(`Ban co chan muon ${text} tai khoan nay?`)) {
+    if (!window.confirm(`Bạn có chắc muốn ${text} tài khoản này?`)) {
       return;
     }
 
@@ -120,10 +130,14 @@ function AdminUsersPage() {
 
       const response = await adminApi.updateUserStatus(userId, newStatus);
 
-      setSuccessMessage(response.message || "Cap nhat trang thai thanh cong");
+      const message = getSuccessMessage(response, "Cập nhật trạng thái thành công");
+      setSuccessMessage(message);
+      toast.success(message);
       await fetchUsers(pagination.page);
     } catch (error) {
-      setError(error.response?.data?.message || error.message || "Cap nhat trang thai that bai");
+      const message = getErrorMessage(error, "Cập nhật trạng thái thất bại");
+      setError(message);
+      toast.error(message);
     } finally {
       setActionLoading(false);
     }
@@ -158,10 +172,10 @@ function AdminUsersPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
             <UserCog className="text-blue-600" />
-            Quan ly nguoi dung
+            Quản lý người dùng
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Tim kiem, loc, doi role va khoa / mo khoa tai khoan
+            Tìm kiếm, lọc, đổi role và khóa / mở khóa tài khoản
           </p>
         </div>
 
@@ -171,7 +185,7 @@ function AdminUsersPage() {
           className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
         >
           <RefreshCcw size={16} />
-          {loading ? "Dang tai..." : "Tai lai"}
+          {loading ? "Đang tải..." : "Tải lại"}
         </button>
       </div>
 
@@ -191,7 +205,7 @@ function AdminUsersPage() {
         <form onSubmit={handleSearchSubmit} className="grid gap-4 lg:grid-cols-[1fr_160px_160px_160px_auto]">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">
-              Tim kiem
+              Tìm kiếm
             </label>
 
             <div className="relative">
@@ -205,7 +219,7 @@ function AdminUsersPage() {
                 name="search"
                 value={filters.search}
                 onChange={handleFilterChange}
-                placeholder="Ten, email hoac so dien thoai"
+                placeholder="Tên, email hoặc số điện thoại"
                 className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -222,7 +236,7 @@ function AdminUsersPage() {
               onChange={handleFilterChange}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Tat ca</option>
+              <option value="">Tất cả</option>
               <option value="USER">USER</option>
               <option value="ADMIN">ADMIN</option>
             </select>
@@ -239,7 +253,7 @@ function AdminUsersPage() {
               onChange={handleFilterChange}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Tat ca</option>
+              <option value="">Tất cả</option>
               <option value="ACTIVE">ACTIVE</option>
               <option value="BLOCKED">BLOCKED</option>
             </select>
@@ -256,7 +270,7 @@ function AdminUsersPage() {
               onChange={handleFilterChange}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Tat ca</option>
+              <option value="">Tất cả</option>
               <option value="local">local</option>
               <option value="google">google</option>
               <option value="facebook">facebook</option>
@@ -270,7 +284,7 @@ function AdminUsersPage() {
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
             >
               <Search size={18} />
-              Tim
+              Tìm
             </button>
           </div>
         </form>
@@ -309,13 +323,13 @@ function AdminUsersPage() {
               {loading ? (
                 <tr>
                   <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
-                    Dang tai danh sach user...
+                    Đang tải danh sách user...
                   </td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
-                    Khong co nguoi dung nao.
+                    Không có người dùng nào.
                   </td>
                 </tr>
               ) : (
@@ -423,7 +437,7 @@ function AdminUsersPage() {
                               : "border-green-200 text-green-700 hover:bg-green-50"
                           }`}
                         >
-                          {user.status === "ACTIVE" ? "Khoa" : "Mo khoa"}
+                          {user.status === "ACTIVE" ? "Khóa" : "Mở khóa"}
                         </button>
                       </div>
                     </td>
@@ -437,7 +451,7 @@ function AdminUsersPage() {
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
-          Trang {pagination.page} / {pagination.totalPages || 1} - Tong{" "}
+          Trang {pagination.page} / {pagination.totalPages || 1} - Tổng{" "}
           {pagination.totalUsers || 0} user
         </p>
 
@@ -447,7 +461,7 @@ function AdminUsersPage() {
             onClick={() => fetchUsers(pagination.page - 1)}
             className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Truoc
+            Trước
           </button>
 
           <button
