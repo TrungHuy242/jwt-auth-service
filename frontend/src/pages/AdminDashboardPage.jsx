@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { PageSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage } from "../utils/toastMessage";
 
@@ -142,11 +143,7 @@ function AdminDashboardPage() {
         </div>
       )}
 
-      {loading && !overview ? (
-        <div className="rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-          Đang tải dashboard...
-        </div>
-      ) : (
+      {loading && !overview ? <PageSkeleton /> : (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <StatCard

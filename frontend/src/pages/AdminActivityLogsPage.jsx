@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Activity, Eye, RefreshCcw, Search, X } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { TableSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
@@ -281,119 +282,114 @@ function AdminActivityLogsPage() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Action
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Method
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Path
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  User
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Details
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Created
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Action
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {loading ? (
+      {loading ? (
+        <TableSkeleton rows={8} columns={7} />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
                 <tr>
-                  <td
-                    colSpan="7"
-                    className="px-4 py-8 text-center text-slate-500"
-                  >
-                    Đang tải activity logs...
-                  </td>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Action
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Method
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Path
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    User
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Details
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Created
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Action
+                  </th>
                 </tr>
-              ) : logs.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="7"
-                    className="px-4 py-8 text-center text-slate-500"
-                  >
-                    Không có activity log nào.
-                  </td>
-                </tr>
-              ) : (
-                logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-4">
-                      <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
-                        {log.action}
-                      </span>
-                    </td>
+              </thead>
 
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getMethodBadgeClass(
-                          log.method
-                        )}`}
-                      >
-                        {log.method || "UNKNOWN"}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-slate-600">
-                      <span className="font-mono text-xs">{log.path}</span>
-                    </td>
-
-                    <td className="px-4 py-4 text-sm">
-                      {log.user ? (
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {log.user.name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {log.user.email}
-                          </p>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400">Unknown</span>
-                      )}
-                    </td>
-
-                    <td className="max-w-xs px-4 py-4 text-sm text-slate-600">
-                      <p className="line-clamp-2">{log.details}</p>
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-slate-500">
-                      {log.createdAt
-                        ? new Date(log.createdAt).toLocaleString("vi-VN")
-                        : ""}
-                    </td>
-
-                    <td className="px-4 py-4 text-right">
-                      <button
-                        onClick={() => handleViewDetail(log.id)}
-                        disabled={detailLoading}
-                        className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
-                      >
-                        <Eye size={14} />
-                        Xem
-                      </button>
+              <tbody className="divide-y divide-slate-200 bg-white">
+                {logs.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="px-4 py-8 text-center text-slate-500"
+                    >
+                      Không có activity log nào.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-4">
+                        <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+                          {log.action}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getMethodBadgeClass(
+                            log.method
+                          )}`}
+                        >
+                          {log.method || "UNKNOWN"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-slate-600">
+                        <span className="font-mono text-xs">{log.path}</span>
+                      </td>
+
+                      <td className="px-4 py-4 text-sm">
+                        {log.user ? (
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {log.user.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {log.user.email}
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400">Unknown</span>
+                        )}
+                      </td>
+
+                      <td className="max-w-xs px-4 py-4 text-sm text-slate-600">
+                        <p className="line-clamp-2">{log.details}</p>
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-slate-500">
+                        {log.createdAt
+                          ? new Date(log.createdAt).toLocaleString("vi-VN")
+                          : ""}
+                      </td>
+
+                      <td className="px-4 py-4 text-right">
+                        <button
+                          onClick={() => handleViewDetail(log.id)}
+                          disabled={detailLoading}
+                          className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-2 text-xs font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
+                        >
+                          <Eye size={14} />
+                          Xem
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">

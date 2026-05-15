@@ -4,6 +4,7 @@ import { userApi } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
+import { ProfileSkeleton } from "../components/ui";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 import { confirmPresets } from "../utils/confirmPresets";
 
@@ -178,6 +179,10 @@ function ProfilePage() {
       setProfileLoading(false);
     }
   };
+
+  if (!user) {
+    return <ProfileSkeleton />;
+  }
 
   return (
     <div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell, CheckCheck, RefreshCcw } from "lucide-react";
 import { notificationApi } from "../api/notificationApi";
+import { CardListSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
@@ -247,9 +248,7 @@ function NotificationsPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-          Đang tải thông báo...
-        </div>
+        <CardListSkeleton rows={5} />
       ) : notifications.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
           Không có thông báo nào.

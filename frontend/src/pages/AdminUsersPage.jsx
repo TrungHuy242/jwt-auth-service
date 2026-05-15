@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCcw, Search, Shield, UserCog } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { TableSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
@@ -315,164 +316,162 @@ function AdminUsersPage() {
         </form>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  User
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Role
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Provider
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Verified
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Created
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {loading ? (
+      {loading ? (
+        <TableSkeleton rows={8} columns={7} />
+      ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
                 <tr>
-                  <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
-                    Đang tải danh sách user...
-                  </td>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    User
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Role
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Provider
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Verified
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Created
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Actions
+                  </th>
                 </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
-                    Không có người dùng nào.
-                  </td>
-                </tr>
-              ) : (
-                users.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-4">
-                      <div className="flex items-center gap-3">
-                        {user.avatar ? (
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="h-10 w-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500">
-                            {user.name?.charAt(0)?.toUpperCase() || "U"}
-                          </div>
-                        )}
+              </thead>
 
-                        <div>
-                          <p className="font-medium text-slate-900">{user.name}</p>
-                          <p className="text-sm text-slate-500">{user.email}</p>
-                          {user.phone && (
-                            <p className="text-xs text-slate-400">{user.phone}</p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getRoleBadgeClass(
-                          user.role
-                        )}`}
-                      >
-                        {user.role}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-                          user.status
-                        )}`}
-                      >
-                        {user.status}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${getProviderBadgeClass(
-                          user.provider
-                        )}`}
-                      >
-                        {user.provider}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          user.isVerified
-                            ? "bg-green-50 text-green-700"
-                            : "bg-yellow-50 text-yellow-700"
-                        }`}
-                      >
-                        {user.isVerified ? "Yes" : "No"}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4 text-sm text-slate-500">
-                      {user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString("vi-VN")
-                        : ""}
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <button
-                          disabled={actionLoading}
-                          onClick={() =>
-                            handleUpdateRole(
-                              user.id,
-                              user.role === "ADMIN" ? "USER" : "ADMIN"
-                            )
-                          }
-                          className="flex items-center gap-1 rounded-xl border border-purple-200 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-60"
-                        >
-                          <Shield size={14} />
-                          {user.role === "ADMIN" ? "Set USER" : "Set ADMIN"}
-                        </button>
-
-                        <button
-                          disabled={actionLoading}
-                          onClick={() =>
-                            handleUpdateStatus(
-                              user.id,
-                              user.status === "ACTIVE" ? "BLOCKED" : "ACTIVE"
-                            )
-                          }
-                          className={`rounded-xl border px-3 py-2 text-xs font-medium disabled:opacity-60 ${
-                            user.status === "ACTIVE"
-                              ? "border-red-200 text-red-700 hover:bg-red-50"
-                              : "border-green-200 text-green-700 hover:bg-green-50"
-                          }`}
-                        >
-                          {user.status === "ACTIVE" ? "Khóa" : "Mở khóa"}
-                        </button>
-                      </div>
+              <tbody className="divide-y divide-slate-200 bg-white">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
+                      Không có người dùng nào.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  users.map((user) => (
+                    <tr key={user.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-4">
+                        <div className="flex items-center gap-3">
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={user.name}
+                              className="h-10 w-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-500">
+                              {user.name?.charAt(0)?.toUpperCase() || "U"}
+                            </div>
+                          )}
+
+                          <div>
+                            <p className="font-medium text-slate-900">{user.name}</p>
+                            <p className="text-sm text-slate-500">{user.email}</p>
+                            {user.phone && (
+                              <p className="text-xs text-slate-400">{user.phone}</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getRoleBadgeClass(
+                            user.role
+                          )}`}
+                        >
+                          {user.role}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
+                            user.status
+                          )}`}
+                        >
+                          {user.status}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getProviderBadgeClass(
+                            user.provider
+                          )}`}
+                        >
+                          {user.provider}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            user.isVerified
+                              ? "bg-green-50 text-green-700"
+                              : "bg-yellow-50 text-yellow-700"
+                          }`}
+                        >
+                          {user.isVerified ? "Yes" : "No"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4 text-sm text-slate-500">
+                        {user.createdAt
+                          ? new Date(user.createdAt).toLocaleDateString("vi-VN")
+                          : ""}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <button
+                            disabled={actionLoading}
+                            onClick={() =>
+                              handleUpdateRole(
+                                user.id,
+                                user.role === "ADMIN" ? "USER" : "ADMIN"
+                              )
+                            }
+                            className="flex items-center gap-1 rounded-xl border border-purple-200 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-60"
+                          >
+                            <Shield size={14} />
+                            {user.role === "ADMIN" ? "Set USER" : "Set ADMIN"}
+                          </button>
+
+                          <button
+                            disabled={actionLoading}
+                            onClick={() =>
+                              handleUpdateStatus(
+                                user.id,
+                                user.status === "ACTIVE" ? "BLOCKED" : "ACTIVE"
+                              )
+                            }
+                            className={`rounded-xl border px-3 py-2 text-xs font-medium disabled:opacity-60 ${
+                              user.status === "ACTIVE"
+                                ? "border-red-200 text-red-700 hover:bg-red-50"
+                                : "border-green-200 text-green-700 hover:bg-green-50"
+                            }`}
+                          >
+                            {user.status === "ACTIVE" ? "Khóa" : "Mở khóa"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
