@@ -107,7 +107,7 @@ Register a new user account.
 
 ```json
 {
-  "message": "Dang ky tai khoan thanh cong. Vui long kiem tra email de xac thuc tai khoan.",
+  "message": "Đăng ký tài khoản thành công. Vui lòng kiểm tra email để xác thực tài khoản.",
   "user": {
     "id": 1,
     "name": "Trung Huy",
@@ -126,10 +126,10 @@ Register a new user account.
 
 | Status | Message                              |
 |--------|--------------------------------------|
-| 400    | Vui lÃ²ng nháº­p Ä‘áº§y Ä‘á»§ name, email, password |
-| 400    | Email Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng               |
+| 400    | Vui lòng nhập đầy đủ name, email, password |
+| 400    | Email đã được sử dụng               |
 | 429    | Too many requests                     |
-| 500    | Lá»—i server khi Ä‘Äƒng kÃ½ tÃ i khoáº£n    |
+| 500    | Lỗi server khi đăng ký tài khoản    |
 
 ---
 
@@ -159,7 +159,7 @@ Authenticate a user with email and password.
 
 ```json
 {
-  "message": "ÄÄƒng nháº­p thÃ nh cÃ´ng",
+  "message": "Đăng nhập thành công",
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
@@ -185,13 +185,13 @@ Authenticate a user with email and password.
 
 | Status | Message                                                       |
 |--------|---------------------------------------------------------------|
-| 400    | Vui long nhap email va password                              |
-| 400    | Email hoac mat khau khong dung                               |
-| 403    | Tai khoan chua xac thuc email. Vui long kiem tra email de xac thuc tai khoan. |
-| 403    | Tai khoan cua ban da bi khoa. Vui long lien he quan tri vien. |
-| 400    | Tai khoan nay dang nhap bang Google/Facebook                 |
+| 400    | Vui lòng nhập email và password                              |
+| 400    | Email hoặc mật khẩu không đúng                               |
+| 403    | Tài khoản chưa xác thực email. Vui lòng kiểm tra email để xác thực tài khoản. |
+| 403    | Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên. |
+| 400    | Tài khoản này đăng nhập bằng Google/Facebook                 |
 | 429    | Too many requests                                            |
-| 500    | Lá»—i server khi dang nhap                                   |
+| 500    | Lỗi server khi đăng nhập                                   |
 
 ---
 
@@ -211,7 +211,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": " Láº¥y thÃ´ng tin ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Lấy thông tin người dùng thành công",
   "user": {
     "id": 1,
     "name": "Trung Huy",
@@ -230,7 +230,7 @@ Authorization: Bearer <accessToken>
 | Status | Message                                    |
 |--------|--------------------------------------------|
 | 401    | No token provided / Token expired / Invalid token |
-| 500    | Lá»—i server khi láº¥y thÃ´ng tin ngÆ°á»i dÃ¹ng   |
+| 500    | Lỗi server khi lấy thông tin người dùng   |
 
 ---
 
@@ -256,7 +256,7 @@ Get a new access token using a valid refresh token.
 
 ```json
 {
-  "message": "Cáº¥p access token má»›i thÃ nh cÃ´ng",
+  "message": "Cấp access token mới thành công",
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 }
 ```
@@ -265,11 +265,11 @@ Get a new access token using a valid refresh token.
 
 | Status | Message                       |
 |--------|-------------------------------|
-| 400    | Vui lÃ²ng gá»­i refresh token   |
-| 401    | Refresh token khÃ´ng há»£p lá»‡   |
-| 401    | Refresh token Ä‘Ã£ bá»‹ thu há»“i |
-| 401    | Refresh token Ä‘Ã£ háº¿t háº¡n    |
-| 500    | Lá»—i server khi refresh token |
+| 400    | Vui lòng gửi refresh token   |
+| 401    | Refresh token không hợp lệ   |
+| 401    | Refresh token đã bị thu hồi |
+| 401    | Refresh token đã hết hạn    |
+| 500    | Lỗi server khi refresh token |
 
 ---
 
@@ -295,7 +295,7 @@ Logout and revoke the refresh token.
 
 ```json
 {
-  "message": "ÄÄƒng xuáº¥t thÃ nh cÃ´ng"
+  "message": "Đăng xuất thành công"
 }
 ```
 
@@ -303,9 +303,9 @@ Logout and revoke the refresh token.
 
 | Status | Message                              |
 |--------|--------------------------------------|
-| 400    | Vui lÃ²ng gá»­i refresh token          |
-| 404    | Refresh token khÃ´ng tá»“n táº¡i          |
-| 500    | Lá»—i server khi Ä‘Äƒng xuáº¥t            |
+| 400    | Vui lòng gửi refresh token          |
+| 404    | Refresh token không tồn tại          |
+| 500    | Lỗi server khi đăng xuất            |
 
 ---
 
@@ -341,7 +341,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Äá»•i máº­t kháº©u thÃ nh cÃ´ng. vui lÃ²ng Ä‘Äƒng nháº­p láº¡i."
+  "message": "Đổi mật khẩu thành công. Vui lòng đăng nhập lại."
 }
 ```
 
@@ -349,13 +349,13 @@ Authorization: Bearer <accessToken>
 
 | Status | Message                                                   |
 |--------|-----------------------------------------------------------|
-| 400    | Vui lÃ²ng nháº­p máº­t kháº©u cÅ© vÃ  máº­t kháº©u má»›i              |
-| 400    | Máº­t kháº©u má»›i pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±                   |
-| 400    | Máº­t kháº©u má»›i khÃ´ng Ä‘Æ°á»£c trÃ¹ng vá»›i máº­t kháº©u cÅ©          |
-| 400    | TÃ i khoáº£n Google/Facebook khÃ´ng thá»ƒ Ä‘á»•i máº­t kháº©u theo cÃ¡ch nÃ y |
-| 404    | NgÆ°á»i dÃ¹ng khÃ´ng tá»“n táº¡i                                 |
+| 400    | Vui lòng nhập mật khẩu cũ và mật khẩu mới              |
+| 400    | Mật khẩu mới phải có ít nhất 6 ký tự                   |
+| 400    | Mật khẩu mới không được trùng với mật khẩu cũ          |
+| 400    | Tài khoản Google/Facebook không thể đổi mật khẩu theo cách này |
+| 404    | Người dùng không tồn tại                                 |
 | 401    | No token provided                                         |
-| 500    | Lá»—i server khi Ä‘á»•i máº­t kháº©u                             |
+| 500    | Lỗi server khi đổi mật khẩu                             |
 
 ---
 
@@ -383,9 +383,9 @@ Request a password reset token.
 
 ```json
 {
-  "message": "Táº¡o reset token thÃ nh cÃ´ng. Báº£n demo tráº£ token trá»±c tiáº¿p Ä‘á»ƒ test.",
+  "message": "Tạo reset token thành công. Bản demo trả token trực tiếp để test.",
   "resetToken": "a1b2c3d4e5f6...",
-  "expiresIn": "15 phÃºt"
+  "expiresIn": "15 phút"
 }
 ```
 
@@ -395,10 +395,10 @@ Request a password reset token.
 
 | Status | Message                                                              |
 |--------|----------------------------------------------------------------------|
-| 400    | Vui lÃ²ng nháº­p email                                                 |
-| 400    | TÃ i khoáº£n nÃ y Ä‘Äƒng nháº­p báº±ng Google/Facebook, khÃ´ng thá»ƒ reset máº­t kháº©u theo cÃ¡ch nÃ y |
+| 400    | Vui lòng nhập email                                                 |
+| 400    | Tài khoản này đăng nhập bằng Google/Facebook, không thể reset mật khẩu theo cách này |
 | 429    | Too many requests                                                    |
-| 500    | Lá»—i server khi yÃªu cáº§u quÃªn máº­t kháº©u                               |
+| 500    | Lỗi server khi yêu cầu quên mật khẩu                               |
 
 ---
 
@@ -428,7 +428,7 @@ Reset password using a valid reset token.
 
 ```json
 {
-  "message": "Äáº·t láº¡i máº­t kháº©u thÃ nh cÃ´ng. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i."
+  "message": "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại."
 }
 ```
 
@@ -438,11 +438,11 @@ Reset password using a valid reset token.
 
 | Status | Message                                         |
 |--------|-------------------------------------------------|
-| 400    | Vui lÃ²ng nháº­p resetToken vÃ  newPassword        |
-| 400    | Máº­t kháº©u má»›i pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±          |
-| 400    | Reset token khÃ´ng há»£p lá»‡ hoáº·c Ä‘Ã£ háº¿t háº¡n      |
+| 400    | Vui lòng nhập resetToken và newPassword        |
+| 400    | Mật khẩu mới phải có ít nhất 6 ký tự          |
+| 400    | Reset token không hợp lệ hoặc đã hết hạn      |
 | 429    | Too many requests                               |
-| 500    | Lá»—i server khi Ä‘áº·t láº¡i máº­t kháº©u              |
+| 500    | Lỗi server khi đặt lại mật khẩu              |
 
 ---
 
@@ -468,7 +468,7 @@ Google OAuth callback handler. Called automatically by Google after user consent
 
 ```json
 {
-  "message": "ÄÄƒng nháº­p Google thÃ nh cÃ´ng",
+  "message": "Đăng nhập Google thành công",
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
@@ -487,7 +487,7 @@ Google OAuth callback handler. Called automatically by Google after user consent
 
 ```json
 {
-  "message": "ÄÄƒng nháº­p Google tháº¥t báº¡i"
+  "message": "Đăng nhập Google thất bại"
 }
 ```
 
@@ -501,7 +501,7 @@ Redirect URL when Google OAuth authentication fails.
 
 ```json
 {
-  "message": "ÄÄƒng nháº­p Google tháº¥t báº¡i"
+  "message": "Đăng nhập Google thất bại"
 }
 ```
 
@@ -526,7 +526,7 @@ Facebook OAuth callback handler.
 
 ```json
 {
-  "message": "ÄÄƒng nháº­p Facebook thÃ nh cÃ´ng",
+  "message": "Đăng nhập Facebook thành công",
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "user": {
@@ -551,7 +551,7 @@ Redirect URL when Facebook OAuth authentication fails.
 
 ```json
 {
-  "message": "ÄÄƒng nháº­p Facebook tháº¥t báº¡i"
+  "message": "Đăng nhập Facebook thất bại"
 }
 ```
 
@@ -592,7 +592,7 @@ GET /api/admin/users?page=1&limit=10&search=ngan&role=USER&status=ACTIVE&provide
 
 ```json
 {
-  "message": "Láº¥y danh sÃ¡ch ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Lấy danh sách người dùng thành công",
   "pagination": {
     "page": 1,
     "limit": 10,
@@ -629,13 +629,13 @@ GET /api/admin/users?page=1&limit=10&search=ngan&role=USER&status=ACTIVE&provide
 
 | Status | Message                                      |
 |--------|----------------------------------------------|
-| 400    | Page khÃ´ng há»£p lá»‡ / Limit khÃ´ng há»£p lá»‡     |
-| 400    | Role khÃ´ng há»£p lá»‡                            |
-| 400    | Status khÃ´ng há»£p lá»‡                         |
-| 400    | Provider khÃ´ng há»£p lá»‡                        |
+| 400    | Page không hợp lệ / Limit không hợp lệ     |
+| 400    | Role không hợp lệ                            |
+| 400    | Status không hợp lệ                         |
+| 400    | Provider không hợp lệ                        |
 | 401    | No token provided / Token expired / Invalid  |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p chá»©c nÄƒng nÃ y   |
-| 500    | Lá»—i server khi láº¥y danh sÃ¡ch ngÆ°á»i dÃ¹ng     |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 500    | Lỗi server khi lấy danh sách người dùng     |
 
 ---
 
@@ -655,7 +655,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Láº¥y thÃ´ng tin ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Lấy thông tin người dùng thành công",
   "user": {
     "id": 1,
     "name": "Kim Ngan",
@@ -679,9 +679,9 @@ Authorization: Bearer <accessToken>
 | Status | Message                                      |
 |--------|----------------------------------------------|
 | 401    | No token provided / Token expired / Invalid  |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p chá»©c nÄƒng nÃ y   |
-| 404    | NgÆ°á»i dÃ¹ng khÃ´ng tá»“n táº¡i                     |
-| 500    | Lá»—i server khi láº¥y thÃ´ng tin ngÆ°á»i dÃ¹ng     |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 404    | Người dùng không tồn tại                     |
+| 500    | Lỗi server khi lấy thông tin người dùng     |
 
 ---
 
@@ -716,7 +716,7 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Cáº­p nháº­t quyá»n ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Cập nhật quyền người dùng thành công",
   "user": {
     "id": 1,
     "role": "ADMIN"
@@ -728,12 +728,12 @@ Content-Type: application/json
 
 | Status | Message                                      |
 |--------|----------------------------------------------|
-| 400    | Vui lÃ²ng chá»n role lÃ  USER hoáº·c ADMIN       |
-| 400    | KhÃ´ng thá»ƒ thay Ä‘á»•i role cá»§a chÃ­nh mÃ¬nh     |
+| 400    | Vui lòng chọn role là USER hoặc ADMIN       |
+| 400    | Không thể thay đổi role của chính mình     |
 | 401    | No token provided / Token expired / Invalid  |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p chá»©c nÄƒng nÃ y   |
-| 404    | NgÆ°á»i dÃ¹ng khÃ´ng tá»“n táº¡i                     |
-| 500    | Lá»—i server khi cáº­p nháº­t role ngÆ°á»i dÃ¹ng    |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 404    | Người dùng không tồn tại                     |
+| 500    | Lỗi server khi cập nhật role người dùng    |
 
 ---
 
@@ -768,7 +768,7 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "KhÃ³a tÃ i khoáº£n ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Khóa tài khoản người dùng thành công",
   "user": {
     "id": 1,
     "status": "BLOCKED"
@@ -780,11 +780,11 @@ Content-Type: application/json
 
 | Status | Message                                      |
 |--------|----------------------------------------------|
-| 400    | Vui lÃ²ng chá»n status lÃ  ACTIVE hoáº·c BLOCKED |
+| 400    | Vui lòng chọn status là ACTIVE hoặc BLOCKED |
 | 401    | No token provided / Token expired / Invalid  |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p chá»©c nÄƒng nÃ y   |
-| 404    | NgÆ°á»i dÃ¹ng khÃ´ng tá»“n táº¡i                     |
-| 500    | Lá»—i server khi cáº­p nháº­t tráº¡ng thÃ¡i ngÆ°á»i dÃ¹ng |
+| 403    | Bạn không có quyền truy cập chức năng này   |
+| 404    | Người dùng không tồn tại                     |
+| 500    | Lỗi server khi cập nhật trạng thái người dùng |
 
 ---
 
@@ -806,7 +806,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Láº¥y há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
+  "message": "Lấy hồ sơ cá nhân thành công",
   "user": {
     "id": 1,
     "name": "Kim Ngan",
@@ -830,7 +830,7 @@ Authorization: Bearer <accessToken>
 | Status | Message                                    |
 |--------|--------------------------------------------|
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi láº¥y há»“ sÆ¡ cÃ¡ nhÃ¢n          |
+| 500    | Lỗi server khi lấy hồ sơ cá nhân          |
 
 ---
 
@@ -869,7 +869,7 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Cáº­p nháº­t há»“ sÆ¡ cÃ¡ nhÃ¢n thÃ nh cÃ´ng",
+  "message": "Cập nhật hồ sơ cá nhân thành công",
   "user": {
     "id": 1,
     "name": "Truong Thi Kim Ngan",
@@ -883,9 +883,9 @@ Content-Type: application/json
 
 | Status | Message                                    |
 |--------|--------------------------------------------|
-| 400    | TÃªn pháº£i cÃ³ Ã­t nháº¥t 1 kÃ½ tá»±               |
+| 400    | Tên phải có ít nhất 1 ký tự               |
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi cáº­p nháº­t há»“ sÆ¡ cÃ¡ nhÃ¢n    |
+| 500    | Lỗi server khi cập nhật hồ sơ cá nhân    |
 
 ---
 
@@ -912,7 +912,7 @@ Content-Type: multipart/form-data
 
 ```json
 {
-  "message": "Upload avatar thÃ nh cÃ´ng",
+  "message": "Upload avatar thành công",
   "avatar": "/uploads/avatars/1749651234567-12345678.png"
 }
 ```
@@ -921,11 +921,11 @@ Content-Type: multipart/form-data
 
 | Status | Message                                    |
 |--------|--------------------------------------------|
-| 400    | Vui lÃ²ng chá»n file avatar                 |
-| 400    | File avatar pháº£i lÃ  jpg, png hoáº·c webp    |
-| 400    | KÃ­ch thÆ°á»›c file avatar khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 5MB |
+| 400    | Vui lòng chọn file avatar                 |
+| 400    | File avatar phải là jpg, png hoặc webp    |
+| 400    | Kích thước file avatar không được vượt quá 5MB |
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi upload avatar              |
+| 500    | Lỗi server khi upload avatar              |
 
 ---
 
@@ -945,7 +945,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "XÃ³a avatar thÃ nh cÃ´ng"
+  "message": "Xóa avatar thành công"
 }
 ```
 
@@ -953,9 +953,9 @@ Authorization: Bearer <accessToken>
 
 | Status | Message                                    |
 |--------|--------------------------------------------|
-| 400    | NgÆ°á»i dÃ¹ng khÃ´ng cÃ³ avatar Ä‘á»ƒ xÃ³a        |
+| 400    | Người dùng không có avatar để xóa        |
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi xÃ³a avatar                 |
+| 500    | Lỗi server khi xóa avatar                 |
 
 ---
 
@@ -1072,7 +1072,7 @@ folder: products
 
 ```json
 {
-  "message": "Upload file thÃ nh cÃ´ng",
+  "message": "Upload file thành công",
   "file": {
     "id": 1,
     "originalName": "demo.png",
@@ -1094,9 +1094,9 @@ folder: products
 
 | Status | Message                                   |
 |--------|-------------------------------------------|
-| 400    | Vui lÃ²ng chá»n file Ä‘á»ƒ upload             |
+| 400    | Vui lòng chọn file để upload             |
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi upload file               |
+| 500    | Lỗi server khi upload file               |
 
 ---
 
@@ -1137,7 +1137,7 @@ folder: products
 
 ```json
 {
-  "message": "Upload nhiá»u file thÃ nh cÃ´ng",
+  "message": "Upload nhiều file thành công",
   "total": 3,
   "files": [
     {
@@ -1162,9 +1162,9 @@ folder: products
 
 | Status | Message                                        |
 |--------|------------------------------------------------|
-| 400    | Vui lÃ²ng chá»n Ã­t nháº¥t má»™t file Ä‘á»ƒ upload      |
+| 400    | Vui lòng chọn ít nhất một file để upload      |
 | 401    | No token provided / Token expired / Invalid    |
-| 500    | Lá»—i server khi upload nhiá»u file              |
+| 500    | Lỗi server khi upload nhiều file              |
 
 ---
 
@@ -1201,7 +1201,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Láº¥y danh sÃ¡ch file thÃ nh cÃ´ng",
+  "message": "Lấy danh sách file thành công",
   "pagination": {
     "page": 1,
     "limit": 10,
@@ -1239,18 +1239,18 @@ Authorization: Bearer <accessToken>
 **Notes:**
 
 ```
-USER thÆ°á»ng chá»‰ xem file do chÃ­nh mÃ¬nh upload.
-ADMIN xem Ä‘Æ°á»£c toÃ n bá»™ file.
+USER thường chỉ xem file do chính mình upload.
+ADMIN xem được toàn bộ file.
 ```
 
 **Error Responses:**
 
 | Status | Message                                    |
 |--------|--------------------------------------------|
-| 400    | Page khÃ´ng há»£p lá»‡ / Limit khÃ´ng há»£p lá»‡  |
-| 400    | Type khÃ´ng há»£p lá»‡                         |
+| 400    | Page không hợp lệ / Limit không hợp lệ  |
+| 400    | Type không hợp lệ                         |
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi láº¥y danh sÃ¡ch file        |
+| 500    | Lỗi server khi lấy danh sách file        |
 
 ---
 
@@ -1270,7 +1270,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Láº¥y chi tiáº¿t file thÃ nh cÃ´ng",
+  "message": "Lấy chi tiết file thành công",
   "file": {
     "id": 1,
     "originalName": "demo.png",
@@ -1295,19 +1295,19 @@ Authorization: Bearer <accessToken>
 **Notes:**
 
 ```
-USER thÆ°á»ng chá»‰ xem file do chÃ­nh mÃ¬nh upload.
-ADMIN xem Ä‘Æ°á»£c má»i file.
+USER thường chỉ xem file do chính mình upload.
+ADMIN xem được mọi file.
 ```
 
 **Error Responses:**
 
 | Status | Message                                   |
 |--------|-------------------------------------------|
-| 400    | ID file khÃ´ng há»£p lá»‡                    |
+| 400    | ID file không hợp lệ                    |
 | 401    | No token provided / Token expired / Invalid |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n xem file nÃ y         |
-| 404    | KhÃ´ng tÃ¬m tháº¥y file                      |
-| 500    | Lá»—i server khi láº¥y chi tiáº¿t file        |
+| 403    | Bạn không có quyền xem file này         |
+| 404    | Không tìm thấy file                      |
+| 500    | Lỗi server khi lấy chi tiết file        |
 
 ---
 
@@ -1327,7 +1327,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "XÃ³a file thÃ nh cÃ´ng",
+  "message": "Xóa file thành công",
   "deletedFile": {
     "id": 1,
     "originalName": "demo.png",
@@ -1340,19 +1340,19 @@ Authorization: Bearer <accessToken>
 **Notes:**
 
 ```
-USER thÆ°á»ng chá»‰ xÃ³a file do chÃ­nh mÃ¬nh upload.
-ADMIN xÃ³a Ä‘Æ°á»£c má»i file.
+USER thường chỉ xóa file do chính mình upload.
+ADMIN xóa được mọi file.
 ```
 
 **Error Responses:**
 
 | Status | Message                                   |
 |--------|-------------------------------------------|
-| 400    | ID file khÃ´ng há»£p lá»‡                    |
+| 400    | ID file không hợp lệ                    |
 | 401    | No token provided / Token expired / Invalid |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n xÃ³a file nÃ y         |
-| 404    | KhÃ´ng tÃ¬m tháº¥y file                      |
-| 500    | Lá»—i server khi xÃ³a file                 |
+| 403    | Bạn không có quyền xóa file này         |
+| 404    | Không tìm thấy file                      |
+| 500    | Lỗi server khi xóa file                 |
 
 ---
 
@@ -1389,7 +1389,7 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Gui email test thanh cong",
+  "message": "Gửi email test thành công",
   "messageId": "<message_id>"
 }
 ```
@@ -1400,10 +1400,10 @@ Content-Type: application/json
 
 | Status | Message                                   |
 |--------|-------------------------------------------|
-| 400    | Vui long nhap email nguoi nhan         |
+| 400    | Vui lòng nhập email người nhận         |
 | 401    | No token provided / Token expired / Invalid |
-| 403    | Ban khong co quyen gui email test        |
-| 500    | Lá»—i server khi gui email               |
+| 403    | Bạn không có quyền gửi email test        |
+| 500    | Lỗi server khi gửi email               |
 
 ---
 
@@ -1429,7 +1429,7 @@ GET /api/auth/verify-email?token=abc123def456
 
 ```json
 {
-  "message": "Xac thuc email thanh cong. Ban co the dang nhap."
+  "message": "Xác thực email thành công. Bạn có thể đăng nhập."
 }
 ```
 
@@ -1437,9 +1437,9 @@ GET /api/auth/verify-email?token=abc123def456
 
 | Status | Message                                   |
 |--------|-------------------------------------------|
-| 400    | Thieu token xac thuc email               |
-| 400    | Token xac thuc khong hop le hoac da het han |
-| 500    | Lá»—i server khi xac thuc email          |
+| 400    | Thiếu token xác thực email               |
+| 400    | Token xác thực không hợp lệ hoặc đã hết hạn |
+| 500    | Lỗi server khi xác thực email          |
 
 ---
 
@@ -1465,7 +1465,7 @@ Resend verification email to user's email address.
 
 ```json
 {
-  "message": "Neu email ton tai va chua xac thuc, he thong se gui lai email xac thuc"
+  "message": "Nếu email tồn tại và chưa xác thực, hệ thống sẽ gửi lại email xác thực"
 }
 ```
 
@@ -1475,11 +1475,11 @@ Resend verification email to user's email address.
 
 | Status | Message                                                      |
 |--------|--------------------------------------------------------------|
-| 400    | Vui long nhap email                                          |
-| 400    | Tai khoan nay dang nhap bang Google/Facebook, khong can xac thuc email theo cach nay |
-| 400    | Tai khoan nay da duoc xac thuc email                          |
-| 403    | Tai khoan cua ban da bi khoa                                 |
-| 500    | Lá»—i server khi gui lai email xac thuc                       |
+| 400    | Vui lòng nhập email                                          |
+| 400    | Tài khoản này đăng nhập bằng Google/Facebook, không cần xác thực email theo cách này |
+| 400    | Tài khoản này đã được xác thực email                          |
+| 403    | Tài khoản của bạn đã bị khóa                                 |
+| 500    | Lỗi server khi gửi lại email xác thực                       |
 
 ---
 
@@ -1497,7 +1497,7 @@ Resend verification email to user's email address.
 
 ```json
 {
-  "message": "Neu email ton tai, he thong se gui huong dan dat lai mat khau"
+  "message": "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu"
 }
 ```
 
@@ -1518,7 +1518,7 @@ Resend verification email to user's email address.
 
 ```json
 {
-  "message": "Dat lai mat khau thanh cong. Vui long dang nhap lai."
+  "message": "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại."
 }
 ```
 
@@ -1559,7 +1559,7 @@ GET /api/notifications?page=1&limit=10&isRead=false&type=SYSTEM
 
 ```json
 {
-  "message": "Láº¥y danh sÃ¡ch thÃ´ng bÃ¡o thÃ nh cÃ´ng",
+  "message": "Lấy danh sách thông báo thành công",
   "pagination": {
     "page": 1,
     "limit": 10,
@@ -1574,8 +1574,8 @@ GET /api/notifications?page=1&limit=10&isRead=false&type=SYSTEM
     {
       "id": 1,
       "userId": 1,
-      "title": "ThÃ´ng bÃ¡o há»‡ thá»‘ng",
-      "message": "Há»‡ thá»‘ng sáº½ báº£o trÃ¬ vÃ o 22:00 tá»‘i nay.",
+      "title": "Thông báo hệ thống",
+      "message": "Hệ thống sẽ bảo trì vào 22:00 tối nay.",
       "type": "SYSTEM",
       "isRead": false,
       "link": "/notifications",
@@ -1585,17 +1585,17 @@ GET /api/notifications?page=1&limit=10&isRead=false&type=SYSTEM
 }
 ```
 
-> **Note:** User chá»‰ xem Ä‘Æ°á»£c thÃ´ng bÃ¡o cá»§a chÃ­nh mÃ¬nh.
+> **Note:** User chỉ xem được thông báo của chính mình.
 
 **Error Responses:**
 
 | Status | Message                                        |
 |--------|------------------------------------------------|
-| 400    | Page khÃ´ng há»£p lá»‡ / Limit khÃ´ng há»£p lá»‡      |
-| 400    | isRead chá»‰ nháº­n giÃ¡ trá»‹ true hoáº·c false      |
-| 400    | Type thÃ´ng bÃ¡o khÃ´ng há»£p lá»‡                    |
+| 400    | Page không hợp lệ / Limit không hợp lệ      |
+| 400    | isRead chỉ nhận giá trị true hoặc false      |
+| 400    | Type thông báo không hợp lệ                    |
 | 401    | No token provided / Token expired / Invalid     |
-| 500    | Lá»—i server khi láº¥y danh sÃ¡ch thÃ´ng bÃ¡o       |
+| 500    | Lỗi server khi lấy danh sách thông báo       |
 
 ---
 
@@ -1615,7 +1615,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "Láº¥y sá»‘ thÃ´ng bÃ¡o chÆ°a Ä‘á»c thÃ nh cÃ´ng",
+  "message": "Lấy số thông báo chưa đọc thành công",
   "unreadCount": 3
 }
 ```
@@ -1625,7 +1625,7 @@ Authorization: Bearer <accessToken>
 | Status | Message                                    |
 |--------|--------------------------------------------|
 | 401    | No token provided / Token expired / Invalid |
-| 500    | Lá»—i server khi láº¥y sá»‘ thÃ´ng bÃ¡o chÆ°a Ä‘á»c |
+| 500    | Lỗi server khi lấy số thông báo chưa đọc |
 
 ---
 
@@ -1645,26 +1645,26 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "ÄÃ¡nh dáº¥u thÃ´ng bÃ¡o Ä‘Ã£ Ä‘á»c thÃ nh cÃ´ng",
+  "message": "Đánh dấu thông báo đã đọc thành công",
   "notification": {
     "id": 1,
-    "title": "ThÃ´ng bÃ¡o há»‡ thá»‘ng",
+    "title": "Thông báo hệ thống",
     "isRead": true
   }
 }
 ```
 
-> **Note:** User chá»‰ cáº­p nháº­t Ä‘Æ°á»£c thÃ´ng bÃ¡o cá»§a chÃ­nh mÃ¬nh.
+> **Note:** User chỉ cập nhật được thông báo của chính mình.
 
 **Error Responses:**
 
 | Status | Message                                        |
 |--------|------------------------------------------------|
-| 400    | ID thÃ´ng bÃ¡o khÃ´ng há»£p lá»‡                     |
+| 400    | ID thông báo không hợp lệ                     |
 | 401    | No token provided / Token expired / Invalid     |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n cáº­p nháº­t thÃ´ng bÃ¡o nÃ y    |
-| 404    | KhÃ´ng tÃ¬m tháº¥y thÃ´ng bÃ¡o                      |
-| 500    | Lá»—i server khi Ä‘Ã¡nh dáº¥u thÃ´ng bÃ¡o Ä‘Ã£ Ä‘á»c     |
+| 403    | Bạn không có quyền cập nhật thông báo này    |
+| 404    | Không tìm thấy thông báo                      |
+| 500    | Lỗi server khi đánh dấu thông báo đã đọc     |
 
 ---
 
@@ -1684,7 +1684,7 @@ Authorization: Bearer <accessToken>
 
 ```json
 {
-  "message": "ÄÃ¡nh dáº¥u táº¥t cáº£ thÃ´ng bÃ¡o Ä‘Ã£ Ä‘á»c thÃ nh cÃ´ng",
+  "message": "Đánh dấu tất cả thông báo đã đọc thành công",
   "updatedCount": 3
 }
 ```
@@ -1696,7 +1696,7 @@ Authorization: Bearer <accessToken>
 | Status | Message                                                  |
 |--------|----------------------------------------------------------|
 | 401    | No token provided / Token expired / Invalid              |
-| 500    | Lá»—i server khi Ä‘Ã¡nh dáº¥u táº¥t cáº£ thÃ´ng bÃ¡o Ä‘Ã£ Ä‘á»c       |
+| 500    | Lỗi server khi đánh dấu tất cả thông báo đã đọc       |
 
 ---
 
@@ -1728,8 +1728,8 @@ Content-Type: application/json
 
 ```json
 {
-  "title": "ThÃ´ng bÃ¡o tá»« quáº£n trá»‹ viÃªn",
-  "message": "ÄÃ¢y lÃ  thÃ´ng bÃ¡o test gá»­i riÃªng cho báº¡n.",
+  "title": "Thông báo từ quản trị viên",
+  "message": "Đây là thông báo test gửi riêng cho bạn.",
   "type": "SYSTEM",
   "link": "/profile"
 }
@@ -1739,7 +1739,7 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Gá»­i thÃ´ng bÃ¡o cho ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Gửi thông báo cho người dùng thành công",
   "user": {
     "id": 2,
     "name": "Test User",
@@ -1748,8 +1748,8 @@ Content-Type: application/json
   "notification": {
     "id": 5,
     "userId": 2,
-    "title": "ThÃ´ng bÃ¡o tá»« quáº£n trá»‹ viÃªn",
-    "message": "ÄÃ¢y lÃ  thÃ´ng bÃ¡o test gá»­i riÃªng cho báº¡n.",
+    "title": "Thông báo từ quản trị viên",
+    "message": "Đây là thông báo test gửi riêng cho bạn.",
     "type": "SYSTEM",
     "isRead": false,
     "link": "/profile"
@@ -1761,13 +1761,13 @@ Content-Type: application/json
 
 | Status | Message                                                                          |
 |--------|----------------------------------------------------------------------------------|
-| 400    | Vui lÃ²ng nháº­p title vÃ  message                                                   |
-| 400    | Type khÃ´ng há»£p lá»‡. Chá»‰ cháº¥p nháº­n SYSTEM, SECURITY, ACCOUNT, ORDER, APPOINTMENT, COURSE hoáº·c OTHER |
-| 400    | ID ngÆ°á»i dÃ¹ng khÃ´ng há»£p lá»‡                                                     |
+| 400    | Vui lòng nhập title và message                                                   |
+| 400    | Type không hợp lệ. Chỉ chấp nhận SYSTEM, SECURITY, ACCOUNT, ORDER, APPOINTMENT, COURSE hoặc OTHER |
+| 400    | ID người dùng không hợp lệ                                                     |
 | 401    | No token provided / Token expired / Invalid                                       |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p chá»©c nÄƒng nÃ y                                        |
-| 404    | KhÃ´ng tÃ¬m tháº¥y ngÆ°á»i dÃ¹ng                                                       |
-| 500    | Lá»—i server khi gá»­i thÃ´ng bÃ¡o cho ngÆ°á»i dÃ¹ng                                     |
+| 403    | Bạn không có quyền truy cập chức năng này                                        |
+| 404    | Không tìm thấy người dùng                                                       |
+| 500    | Lỗi server khi gửi thông báo cho người dùng                                     |
 
 ---
 
@@ -1798,8 +1798,8 @@ Content-Type: application/json
 
 ```json
 {
-  "title": "ThÃ´ng bÃ¡o há»‡ thá»‘ng",
-  "message": "Há»‡ thá»‘ng sáº½ báº£o trÃ¬ vÃ o 22:00 tá»‘i nay.",
+  "title": "Thông báo hệ thống",
+  "message": "Hệ thống sẽ bảo trì vào 22:00 tối nay.",
   "type": "SYSTEM",
   "link": "/notifications"
 }
@@ -1809,7 +1809,7 @@ Content-Type: application/json
 
 ```json
 {
-  "message": "Gá»­i thÃ´ng bÃ¡o hÃ ng loáº¡t thÃ nh cÃ´ng",
+  "message": "Gửi thông báo hàng loạt thành công",
   "totalUsers": 5,
   "createdCount": 5,
   "filters": {
@@ -1823,33 +1823,33 @@ Content-Type: application/json
 
 ```json
 {
-  "title": "ThÃ´ng bÃ¡o cho ngÆ°á»i dÃ¹ng",
-  "message": "ÄÃ¢y lÃ  thÃ´ng bÃ¡o chá»‰ gá»­i cho role USER.",
+  "title": "Thông báo cho người dùng",
+  "message": "Đây là thông báo chỉ gửi cho role USER.",
   "type": "SYSTEM",
   "role": "USER",
   "link": "/notifications"
 }
 ```
 
-> **Note:** Broadcast chá»‰ gá»­i cho user ACTIVE. Náº¿u truyá»n role, há»‡ thá»‘ng chá»‰ gá»­i cho user ACTIVE thuá»™c role Ä‘Ã³.
+> **Note:** Broadcast chỉ gửi cho user ACTIVE. Nếu truyền role, hệ thống chỉ gửi cho user ACTIVE thuộc role đó.
 
 **Error Responses:**
 
 | Status | Message                                                                          |
 |--------|----------------------------------------------------------------------------------|
-| 400    | Vui lÃ²ng nháº­p title vÃ  message                                                   |
-| 400    | Type khÃ´ng há»£p lá»‡. Chá»‰ cháº¥p nháº­n SYSTEM, SECURITY, ACCOUNT, ORDER, APPOINTMENT, COURSE hoáº·c OTHER |
-| 400    | Role khÃ´ng há»£p lá»‡. Chá»‰ cháº¥p nháº­n USER hoáº·c ADMIN                                 |
+| 400    | Vui lòng nhập title và message                                                   |
+| 400    | Type không hợp lệ. Chỉ chấp nhận SYSTEM, SECURITY, ACCOUNT, ORDER, APPOINTMENT, COURSE hoặc OTHER |
+| 400    | Role không hợp lệ. Chỉ chấp nhận USER hoặc ADMIN                                 |
 | 401    | No token provided / Token expired / Invalid                                       |
-| 403    | Báº¡n khÃ´ng cÃ³ quyá»n truy cáº­p chá»©c nÄƒng nÃ y                                        |
-| 404    | KhÃ´ng cÃ³ ngÆ°á»i dÃ¹ng phÃ¹ há»£p Ä‘á»ƒ gá»­i thÃ´ng bÃ¡o                                   |
-| 500    | Lá»—i server khi gá»­i thÃ´ng bÃ¡o hÃ ng loáº¡t                                         |
+| 403    | Bạn không có quyền truy cập chức năng này                                        |
+| 404    | Không có người dùng phù hợp để gửi thông báo                                   |
+| 500    | Lỗi server khi gửi thông báo hàng loạt                                         |
 
 ---
 
 ## Activity Log APIs
 
-### 40. GET /api/admin/activity-logs
+### 40. GET `/api/admin/activity-logs`
 
 Get all activity logs with pagination, search, and filters (admin only).
 
@@ -1857,38 +1857,39 @@ Get all activity logs with pagination, search, and filters (admin only).
 
 **Headers:**
 
-`
+```
 Authorization: Bearer <accessToken>
-`
+```
 
 **Query Parameters:**
 
 | Parameter | Type   | Default | Description                                      |
 |-----------|--------|---------|--------------------------------------------------|
-| page    | number | 1       | Page number (min: 1)                             |
-| limit   | number | 10      | Items per page (min: 1)                          |
-| search  | string | ""      | Search by action, details, or path               |
-| userId  | number | -       | Filter by user ID                                |
-| ction  | string | -       | Filter by action type (e.g. LOGIN, CHANGE_PASSWORD) |
-| method  | string | -       | Filter by HTTP method: GET, POST, PATCH, PUT, DELETE |
+| page      | number | 1       | Page number (min: 1)                             |
+| limit     | number | 10      | Items per page (min: 1)                          |
+| search    | string | ""      | Search by action, details, or path               |
+| userId    | number | -       | Filter by user ID                                |
+| action    | string | -       | Filter by action type (e.g. LOGIN, CHANGE_PASSWORD) |
+| method    | string | -       | Filter by HTTP method: GET, POST, PATCH, PUT, DELETE |
 
 **Example Request:**
 
-`
+```
 GET /api/admin/activity-logs?page=1&limit=10&search=LOGIN&userId=1&action=LOGIN&method=POST
-`
+Authorization: Bearer <accessToken>
+```
 
 **Note:**
 
-`
-Chi ADMIN moi duoc xem activity log.
-Co the tim kiem theo action, details, path.
-Co the loc theo userId, action, method.
-`
+```
+Chỉ ADMIN mới được xem activity log.
+Có thể tìm kiếm theo action, details, path.
+Có thể lọc theo userId, action, method.
+```
 
 ---
 
-### 41. GET /api/admin/activity-logs/:id
+### 41. GET `/api/admin/activity-logs/:id`
 
 Get details of a specific activity log by ID (admin only).
 
@@ -1896,15 +1897,15 @@ Get details of a specific activity log by ID (admin only).
 
 **Headers:**
 
-`
+```
 Authorization: Bearer <accessToken>
-`
+```
 
 **Example Response (200 OK):**
 
-`json
+```json
 {
-  "message": "Lay chi tiet activity log thanh cong",
+  "message": "Lấy chi tiết activity log thành công",
   "log": {
     "id": 1,
     "userId": 1,
@@ -1925,17 +1926,17 @@ Authorization: Bearer <accessToken>
     }
   }
 }
-`
+```
 
 **Error Responses:**
 
 | Status | Message                                      |
 |--------|----------------------------------------------|
-| 400    | ID activity log khong hop le                  |
+| 400    | ID activity log không hợp lệ                  |
 | 401    | No token provided / Token expired / Invalid  |
-| 403    | Ban khong co quyen truy cap chuc nang nay     |
-| 404    | Khong tim thay activity log                  |
-| 500    | Loi server khi lay chi tiet activity log     |
+| 403    | Bạn không có quyền truy cập chức năng này     |
+| 404    | Không tìm thấy activity log                  |
+| 500    | Lỗi server khi lấy chi tiết activity log     |
 
 ---
 
@@ -1943,7 +1944,7 @@ Authorization: Bearer <accessToken>
 
 ### 42. GET `/api/admin/dashboard/overview`
 
-Lay thong ke tong quan he thong.
+Lấy thống kê tổng quan hệ thống.
 
 **Header:**
 
@@ -1955,7 +1956,7 @@ Authorization: Bearer admin_access_token
 
 ```json
 {
-  "message": "Lay thong ke tong quan dashboard thanh cong",
+  "message": "Lấy thống kê tổng quan dashboard thành công",
   "overview": {
     "totalUsers": 10,
     "newUsersToday": 2,
@@ -1973,7 +1974,7 @@ Authorization: Bearer admin_access_token
 
 ### 43. GET `/api/admin/dashboard/users`
 
-Lay thong ke nguoi dung.
+Lấy thống kê người dùng.
 
 **Header:**
 
@@ -1985,7 +1986,7 @@ Authorization: Bearer admin_access_token
 
 ```json
 {
-  "message": "Lay thong ke nguoi dung thanh cong",
+  "message": "Lấy thống kê người dùng thành công",
   "statistics": {
     "totalUsers": 10,
     "verifiedUsers": 8,
@@ -2010,7 +2011,7 @@ Authorization: Bearer admin_access_token
 
 ### 44. GET `/api/admin/dashboard/files`
 
-Lay thong ke file upload.
+Lấy thống kê file upload.
 
 **Header:**
 
@@ -2022,7 +2023,7 @@ Authorization: Bearer admin_access_token
 
 ```json
 {
-  "message": "Lay thong ke file upload thanh cong",
+  "message": "Lấy thống kê file upload thành công",
   "statistics": {
     "totalFiles": 20,
     "filesUploadedToday": 3,
@@ -2045,7 +2046,7 @@ Authorization: Bearer admin_access_token
 
 ### 45. GET `/api/admin/dashboard/system`
 
-Lay thong ke notification va activity log.
+Lấy thống kê notification và activity log.
 
 **Header:**
 
@@ -2057,7 +2058,7 @@ Authorization: Bearer admin_access_token
 
 ```json
 {
-  "message": "Lay thong ke he thong thanh cong",
+  "message": "Lấy thống kê hệ thống thành công",
   "statistics": {
     "notifications": {
       "totalNotifications": 30,
@@ -2088,7 +2089,7 @@ Authorization: Bearer admin_access_token
 
 ### 46. GET `/api/admin/dashboard/recent-activities`
 
-Lay hoat dong gan day cua he thong.
+Lấy hoạt động gần đây của hệ thống.
 
 **Header:**
 
@@ -2100,13 +2101,13 @@ Authorization: Bearer admin_access_token
 
 | Parameter | Type | Required | Description                    |
 |-----------|------|----------|--------------------------------|
-| `limit`   | int  | No       | So item moi nhom (mac dinh: 5)|
+| `limit`   | int  | No       | Số item mỗi nhóm (mặc định: 5)|
 
 **Response:**
 
 ```json
 {
-  "message": "Lay hoat dong gan day thanh cong",
+  "message": "Lấy hoạt động gần đây thành công",
   "recent": {
     "recentUsers": [],
     "recentFiles": [],
@@ -2119,15 +2120,15 @@ Authorization: Bearer admin_access_token
 **Note:**
 
 ```txt
-Chi ADMIN moi duoc xem dashboard.
-Cac so lieu dashboard lay tu User, UploadedFile, Notification va ActivityLog.
+Chỉ ADMIN mới được xem dashboard.
+Các số liệu dashboard lấy từ User, UploadedFile, Notification và ActivityLog.
 ```
 
 ---
 
 ## Activity Log Actions
 
-`	xt
+```
 LOGIN
 LOGOUT
 CHANGE_PASSWORD
@@ -2139,9 +2140,10 @@ UPDATE_USER_ROLE
 UPDATE_USER_STATUS
 SEND_NOTIFICATION_TO_USER
 BROADCAST_NOTIFICATION
-`
+```
 
 ---
+
 ## Response Formats
 
 ### Success Response
@@ -2166,7 +2168,7 @@ BROADCAST_NOTIFICATION
 
 ```json
 {
-  "message": "Láº¥y danh sÃ¡ch ngÆ°á»i dÃ¹ng thÃ nh cÃ´ng",
+  "message": "Lấy danh sách người dùng thành công",
   "pagination": {
     "page": 1,
     "limit": 10,
@@ -2225,11 +2227,11 @@ BROADCAST_NOTIFICATION
 | `role`               | enum    | `USER` or `ADMIN`                          |
 | `provider`           | string  | `local`, `google`, or `facebook`           |
 | `providerId`         | string? | OAuth provider user ID                     |
-| `avatar`             | string?  | Profile avatar URL (local or URL)          |
-| `phone`               | string?  | Phone number                              |
-| `address`             | string?  | User address                              |
-| `status`             | enum     | `ACTIVE` or `BLOCKED`                    |
-| `isVerified`         | boolean  | Email verification status                  |
+| `avatar`             | string? | Profile avatar URL (local or URL)          |
+| `phone`              | string? | Phone number                              |
+| `address`            | string? | User address                              |
+| `status`             | enum    | `ACTIVE` or `BLOCKED`                    |
+| `isVerified`         | boolean | Email verification status                  |
 | `lastLoginAt`         | DateTime?| Last login timestamp                      |
 | `resetPasswordToken` | string? | Active password reset token               |
 | `resetPasswordExpires`| DateTime?| Reset token expiration time              |
