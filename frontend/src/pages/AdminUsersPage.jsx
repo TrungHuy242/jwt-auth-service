@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { RefreshCcw, Search, Shield, UserCog } from "lucide-react";
 import { adminApi } from "../api/adminApi";
 import { useToast } from "../context/ToastContext";
+import { useConfirm } from "../context/ConfirmContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
+import { confirmPresets } from "../utils/confirmPresets";
 
 function AdminUsersPage() {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const [users, setUsers] = useState([]);
   const [pagination, setPagination] = useState({
@@ -92,7 +95,15 @@ function AdminUsersPage() {
   };
 
   const handleUpdateRole = async (userId, newRole) => {
-    if (!window.confirm(`Bạn có chắc muốn đổi role user này thành ${newRole}?`)) {
+    const ok = await confirm(
+      confirmPresets.warning({
+        title: "Đổi role người dùng",
+        message: `Bạn có chắc muốn đổi role của người dùng này thành ${newRole}? Sau khi đổi role, quyền truy cập của người dùng sẽ thay đổi.`,
+        confirmText: `Đổi thành ${newRole}`,
+      })
+    );
+
+    if (!ok) {
       return;
     }
 
@@ -106,6 +117,7 @@ function AdminUsersPage() {
       const message = getSuccessMessage(response, "Cập nhật role thành công");
       setSuccessMessage(message);
       toast.success(message);
+
       await fetchUsers(pagination.page);
     } catch (error) {
       const message = getErrorMessage(error, "Cập nhật role thất bại");
@@ -117,9 +129,21 @@ function AdminUsersPage() {
   };
 
   const handleUpdateStatus = async (userId, newStatus) => {
-    const text = newStatus === "BLOCKED" ? "khóa" : "mở khóa";
+    const isBlock = newStatus === "BLOCKED";
 
-    if (!window.confirm(`Bạn có chắc muốn ${text} tài khoản này?`)) {
+    const ok = await confirm(
+      isBlock
+        ? confirmPresets.block({
+            message:
+              "Bạn có chắc muốn khóa tài khoản này không? Người dùng sẽ không thể đăng nhập cho đến khi được mở khóa.",
+          })
+        : confirmPresets.unblock({
+            message:
+              "Bạn có chắc muốn mở khóa tài khoản này không? Người dùng sẽ có thể đăng nhập lại.",
+          })
+    );
+
+    if (!ok) {
       return;
     }
 
@@ -133,6 +157,7 @@ function AdminUsersPage() {
       const message = getSuccessMessage(response, "Cập nhật trạng thái thành công");
       setSuccessMessage(message);
       toast.success(message);
+
       await fetchUsers(pagination.page);
     } catch (error) {
       const message = getErrorMessage(error, "Cập nhật trạng thái thất bại");

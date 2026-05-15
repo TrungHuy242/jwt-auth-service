@@ -3,11 +3,14 @@ import { Camera, Save, Trash2, UserCircle } from "lucide-react";
 import { userApi } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import { useConfirm } from "../context/ConfirmContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
+import { confirmPresets } from "../utils/confirmPresets";
 
 function ProfilePage() {
   const { user, setUser, loadCurrentUser } = useAuth();
   const { toast } = useToast();
+  const { confirm } = useConfirm();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -125,7 +128,16 @@ function ProfilePage() {
   };
 
   const handleDeleteAvatar = async () => {
-    if (!window.confirm("Bạn có chắc muốn xóa avatar không?")) {
+    const ok = await confirm(
+      confirmPresets.delete({
+        title: "Xóa avatar",
+        message:
+          "Bạn có chắc muốn xóa avatar hiện tại không? Sau khi xóa, ảnh đại diện sẽ bị gỡ khỏi tài khoản.",
+        confirmText: "Xóa avatar",
+      })
+    );
+
+    if (!ok) {
       return;
     }
 
@@ -137,6 +149,7 @@ function ProfilePage() {
       const response = await userApi.deleteAvatar();
 
       const message = getSuccessMessage(response, "Xóa avatar thành công");
+
       setUser(response.user);
       setAvatarFile(null);
       setPreviewAvatar("");
