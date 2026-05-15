@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, KeyRound, ArrowLeft } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { resetPasswordSchema } from "../validations/authSchemas";
+import { FormError } from "../components/ui";
 import { authApi } from "../api/authApi";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
@@ -10,12 +14,23 @@ function ResetPasswordPage() {
   const token = searchParams.get("token");
   const { toast } = useToast();
 
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
   const [success, setSuccess] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
 
   useEffect(() => {
     if (!token) {
@@ -25,75 +40,36 @@ function ResetPasswordPage() {
     }
   }, [token]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const onSubmit = async (data) => {
     if (!token) {
-      const msg = "Token không hợp lệ hoặc đã hết hạn";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (!password) {
-      const msg = "Vui lòng nhập mật khẩu mới";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (password.length < 8) {
-      const msg = "Mật khẩu phải có ít nhất 8 ký tự";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (!/[A-Z]/.test(password)) {
-      const msg = "Mật khẩu phải chứa ít nhất 1 chữ hoa";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (!/[a-z]/.test(password)) {
-      const msg = "Mật khẩu phải chứa ít nhất 1 chữ thường";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (!/\d/.test(password)) {
-      const msg = "Mật khẩu phải chứa ít nhất 1 số";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
-      const msg = "Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      const msg = "Mật khẩu xác nhận không khớp";
-      setMessage({ type: "error", text: msg });
-      toast.warning(msg);
+      const message = "Thiếu token đặt lại mật khẩu";
+      setMessage({ type: "error", text: message });
+      toast.warning(message);
       return;
     }
 
     try {
       setLoading(true);
       setMessage({ type: "", text: "" });
-      const response = await authApi.resetPassword({ resetToken: token, newPassword: password });
-      const msg = getSuccessMessage(response, "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập ngay.");
+
+      const response = await authApi.resetPassword({
+        resetToken: token,
+        newPassword: data.newPassword,
+      });
+
+      const msg = getSuccessMessage(
+        response,
+        "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại."
+      );
+
       setSuccess(true);
       setMessage({ type: "success", text: msg });
       toast.success(msg);
+
+      reset();
     } catch (error) {
-      const msg = getErrorMessage(error, "Có lỗi xảy ra. Vui lòng thử lại.");
+      const msg = getErrorMessage(error, "Đặt lại mật khẩu thất bại");
+
       setMessage({ type: "error", text: msg });
       toast.error(msg);
     } finally {
@@ -132,7 +108,7 @@ function ResetPasswordPage() {
           )}
 
           {!success && (
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
                   Mật khẩu mới
@@ -144,11 +120,14 @@ function ResetPasswordPage() {
                   />
                   <input
                     type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 py-3 pl-12 pr-12 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                    placeholder="Ít nhất 8 ký tự, 1 hoa, 1 thường, 1 số, 1 đặc biệt"
+                    {...register("newPassword")}
+                    placeholder="Nhập mật khẩu mới"
                     disabled={loading || !token}
+                    className={`w-full rounded-xl border py-3 pl-12 pr-12 outline-none focus:ring-2 ${
+                      errors.newPassword
+                        ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                        : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                    }`}
                   />
                   <button
                     type="button"
@@ -158,6 +137,7 @@ function ResetPasswordPage() {
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
+                <FormError message={errors.newPassword?.message} />
               </div>
 
               <div>
@@ -166,12 +146,16 @@ function ResetPasswordPage() {
                 </label>
                 <input
                   type={showPassword ? "text" : "password"}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  {...register("confirmPassword")}
                   placeholder="Nhập lại mật khẩu mới"
                   disabled={loading || !token}
+                  className={`w-full rounded-xl border py-3 px-4 outline-none focus:ring-2 ${
+                    errors.confirmPassword
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
                 />
+                <FormError message={errors.confirmPassword?.message} />
               </div>
 
               <button

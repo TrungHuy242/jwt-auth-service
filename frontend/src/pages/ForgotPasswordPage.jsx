@@ -1,35 +1,58 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { forgotPasswordSchema } from "../validations/authSchemas";
+import { FormError } from "../components/ui";
 import { authApi } from "../api/authApi";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function ForgotPasswordPage() {
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
+
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
-    if (!email.trim()) {
-      setMessage({ type: "error", text: "Vui lòng nhập email" });
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
       setLoading(true);
-      setMessage({ type: "", text: "" });
-      const response = await authApi.forgotPassword(email);
-      const msg = getSuccessMessage(response, "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu");
-      setMessage({ type: "success", text: msg });
-      toast.success(msg);
+      setError("");
+      setSuccessMessage("");
+
+      const response = await authApi.forgotPassword(data.email);
+
+      const message = getSuccessMessage(
+        response,
+        "Nếu email tồn tại, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu"
+      );
+
+      setSuccessMessage(message);
+      toast.success(message);
+
+      reset();
     } catch (error) {
-      const msg = getErrorMessage(error, "Có lỗi xảy ra. Vui lòng thử lại.");
-      setMessage({ type: "error", text: msg });
-      toast.error(msg);
+      const message = getErrorMessage(
+        error,
+        "Gửi yêu cầu quên mật khẩu thất bại"
+      );
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -53,19 +76,19 @@ function ForgotPasswordPage() {
             </p>
           </div>
 
-          {message.text && (
-            <div
-              className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
-                message.type === "success"
-                  ? "border-green-200 bg-green-50 text-green-700"
-                  : "border-red-200 bg-red-50 text-red-700"
-              }`}
-            >
-              {message.text}
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          {successMessage && (
+            <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              {successMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Email
@@ -77,13 +100,17 @@ function ForgotPasswordPage() {
                 />
                 <input
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 py-3 pl-12 pr-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  {...register("email")}
                   placeholder="Nhập email của bạn"
                   disabled={loading}
+                  className={`w-full rounded-xl border py-3 pl-12 pr-4 outline-none focus:ring-2 ${
+                    errors.email
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
                 />
               </div>
+              <FormError message={errors.email?.message} />
             </div>
 
             <button

@@ -1,104 +1,57 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "../validations/authSchemas";
+import { FormError } from "../components/ui";
 import { authApi } from "../api/authApi";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function RegisterPage() {
-  const navigate = useNavigate();
   const { toast } = useToast();
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setError("");
-    setSuccessMessage("");
-  };
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!formData.name.trim()) {
-      setError("Vui lòng nhập họ tên");
-      return;
-    }
-
-    if (!formData.email.trim()) {
-      setError("Vui lòng nhập email");
-      return;
-    }
-
-    if (!formData.password) {
-      setError("Vui lòng nhập mật khẩu");
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      setError("Mật khẩu phải có ít nhất 8 ký tự");
-      return;
-    }
-
-    if (!/[A-Z]/.test(formData.password)) {
-      setError("Mật khẩu phải chứa ít nhất 1 chữ hoa");
-      return;
-    }
-
-    if (!/[a-z]/.test(formData.password)) {
-      setError("Mật khẩu phải chứa ít nhất 1 chữ thường");
-      return;
-    }
-
-    if (!/\d/.test(formData.password)) {
-      setError("Mật khẩu phải chứa ít nhất 1 số");
-      return;
-    }
-
-    if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
-      setError("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Mật khẩu xác nhận không khớp");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
       setLoading(true);
       setError("");
       setSuccessMessage("");
 
-      await authApi.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
+      const response = await authApi.register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       });
 
       const message = getSuccessMessage(
         response,
         "Đăng ký thành công. Vui lòng kiểm tra email để xác thực tài khoản."
       );
+
       setSuccessMessage(message);
       toast.success(message);
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+
+      reset();
     } catch (error) {
       const message = getErrorMessage(error, "Đăng ký thất bại");
       setError(message);
@@ -131,19 +84,22 @@ function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Họ tên
               </label>
               <input
                 type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("name")}
                 placeholder="Nhập họ tên của bạn"
+                className={`w-full rounded-xl border py-3 px-4 outline-none focus:ring-2 ${
+                  errors.name
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
               />
+              <FormError message={errors.name?.message} />
             </div>
 
             <div>
@@ -152,12 +108,15 @@ function RegisterPage() {
               </label>
               <input
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("email")}
                 placeholder="Nhập email của bạn"
+                className={`w-full rounded-xl border py-3 px-4 outline-none focus:ring-2 ${
+                  errors.email
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
               />
+              <FormError message={errors.email?.message} />
             </div>
 
             <div>
@@ -167,11 +126,13 @@ function RegisterPage() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                  placeholder="Ít nhất 8 ký tự, 1 hoa, 1 thường, 1 số, 1 đặc biệt"
+                  {...register("password")}
+                  className={`w-full rounded-xl border py-3 pr-12 pl-4 outline-none focus:ring-2 ${
+                    errors.password
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
+                  placeholder="Nhập mật khẩu"
                 />
                 <button
                   type="button"
@@ -181,20 +142,10 @@ function RegisterPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
-                Xác nhận mật khẩu
-              </label>
-              <input
-                type={showPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="Nhập lại mật khẩu"
-              />
+              <p className="mt-2 text-xs text-slate-500">
+                Mật khẩu nên có ít nhất 6 ký tự.
+              </p>
+              <FormError message={errors.password?.message} />
             </div>
 
             <button

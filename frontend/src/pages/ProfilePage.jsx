@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
 import { Camera, Save, Trash2, UserCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { userApi } from "../api/userApi";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
-import { ProfileSkeleton } from "../components/ui";
+import { ProfileSkeleton, FormError } from "../components/ui";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 import { confirmPresets } from "../utils/confirmPresets";
+import { profileSchema } from "../validations/profileSchemas";
 
 function ProfilePage() {
   const { user, setUser, loadCurrentUser } = useAuth();
   const { toast } = useToast();
   const { confirm } = useConfirm();
-
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    address: "",
-  });
 
   const [avatarFile, setAvatarFile] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState("");
@@ -28,9 +25,23 @@ function ProfilePage() {
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      address: "",
+    },
+  });
+
   useEffect(() => {
     if (user) {
-      setFormData({
+      reset({
         name: user.name || "",
         phone: user.phone || "",
         address: user.address || "",
@@ -38,40 +49,22 @@ function ProfilePage() {
 
       setPreviewAvatar(user.avatar || "");
     }
-  }, [user]);
+  }, [user, reset]);
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setError("");
-    setSuccessMessage("");
-  };
-
-  const handleUpdateProfile = async (event) => {
-    event.preventDefault();
-
-    if (!formData.name.trim()) {
-      setError("Vui lòng nhập họ tên");
-      return;
-    }
-
+  const handleUpdateProfile = async (data) => {
     try {
       setProfileLoading(true);
       setError("");
       setSuccessMessage("");
 
       const response = await userApi.updateMyProfile({
-        name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
+        name: data.name,
+        phone: data.phone || "",
+        address: data.address || "",
       });
 
       const message = getSuccessMessage(response, "Cập nhật hồ sơ thành công");
+
       setUser(response.user);
       setSuccessMessage(message);
       toast.success(message);
@@ -301,19 +294,22 @@ function ProfilePage() {
             Thông tin cá nhân
           </h2>
 
-          <form onSubmit={handleUpdateProfile} className="mt-5 space-y-4">
+          <form onSubmit={handleSubmit(handleUpdateProfile)} className="mt-5 space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Họ tên
               </label>
               <input
                 type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("name")}
+                className={`w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 ${
+                  errors.name
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
                 placeholder="Nhập họ tên"
               />
+              <FormError message={errors.name?.message} />
             </div>
 
             <div>
@@ -322,12 +318,15 @@ function ProfilePage() {
               </label>
               <input
                 type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("phone")}
+                className={`w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 ${
+                  errors.phone
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
                 placeholder="Nhập số điện thoại"
               />
+              <FormError message={errors.phone?.message} />
             </div>
 
             <div>
@@ -335,13 +334,16 @@ function ProfilePage() {
                 Địa chỉ
               </label>
               <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
+                {...register("address")}
                 rows={4}
-                className="w-full resize-none rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                className={`w-full resize-none rounded-xl border px-4 py-3 outline-none focus:ring-2 ${
+                  errors.address
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
                 placeholder="Nhập địa chỉ"
               />
+              <FormError message={errors.address?.message} />
             </div>
 
             <button

@@ -5,3 +5,4 @@ export { default as CardListSkeleton } from "./CardListSkeleton";
 export { default as ProfileSkeleton } from "./ProfileSkeleton";
 export { default as ToastContainer } from "./ToastContainer";
 export { default as ConfirmModal } from "./ConfirmModal";
+export { default as FormError } from "./FormError";

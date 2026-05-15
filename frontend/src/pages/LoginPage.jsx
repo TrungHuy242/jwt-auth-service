@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "../validations/authSchemas";
+import { FormError } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
@@ -10,42 +14,31 @@ function LoginPage() {
   const { login } = useAuth();
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setError("");
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (!formData.email.trim()) {
-      setError("Vui lòng nhập email");
-      return;
-    }
-
-    if (!formData.password) {
-      setError("Vui lòng nhập mật khẩu");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
       setLoading(true);
       setError("");
-      const response = await login(formData.email, formData.password);
+
+      const response = await login(data.email, data.password);
+
       toast.success(getSuccessMessage(response, "Đăng nhập thành công"));
+
       if (response?.user?.role === "ADMIN") {
         navigate("/admin/dashboard");
       } else {
@@ -77,19 +70,22 @@ function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Email
               </label>
               <input
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                {...register("email")}
                 placeholder="Nhập email của bạn"
+                className={`w-full rounded-xl border py-3 px-4 outline-none focus:ring-2 ${
+                  errors.email
+                    ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                    : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                }`}
               />
+              <FormError message={errors.email?.message} />
             </div>
 
             <div>
@@ -99,10 +95,12 @@ function LoginPage() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 pr-12 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  {...register("password")}
+                  className={`w-full rounded-xl border py-3 pr-12 pl-4 outline-none focus:ring-2 ${
+                    errors.password
+                      ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                      : "border-slate-300 focus:border-blue-500 focus:ring-blue-100"
+                  }`}
                   placeholder="Nhập mật khẩu"
                 />
                 <button
@@ -113,6 +111,7 @@ function LoginPage() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              <FormError message={errors.password?.message} />
             </div>
 
             <div className="flex items-center justify-end">
