@@ -4,7 +4,7 @@ import { Mail, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema } from "../validations/authSchemas";
-import { FormError } from "../components/ui";
+import { FormError, AppBrand, MaintenanceBanner } from "../components/ui";
 import { authApi } from "../api/authApi";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
@@ -70,11 +70,15 @@ function ForgotPasswordPage() {
               <ArrowLeft size={16} />
               Quay lại đăng nhập
             </Link>
-            <h1 className="text-2xl font-bold text-slate-900">Quên mật khẩu?</h1>
-            <p className="mt-2 text-sm text-slate-500">
-              Nhập email của bạn để nhận hướng dẫn đặt lại mật khẩu
-            </p>
+            <AppBrand size="lg" showSubtitle />
           </div>
+
+          <MaintenanceBanner />
+
+          <h1 className="text-2xl font-bold text-slate-900">Quên mật khẩu?</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            Nhập email của bạn để nhận hướng dẫn đặt lại mật khẩu
+          </p>
 
           {error && (
             <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">

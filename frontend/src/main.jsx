@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { ConfirmProvider } from "./context/ConfirmContext";
+import { SettingsProvider } from "./context/SettingsContext";
 import ToastContainer from "./components/ui/ToastContainer";
 import ConfirmModal from "./components/ui/ConfirmModal";
 import "./index.css";
@@ -14,11 +15,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <ToastProvider>
         <ConfirmProvider>
-          <AuthProvider>
-            <App />
-            <ToastContainer />
-            <ConfirmModal />
-          </AuthProvider>
+          <SettingsProvider>
+            <AuthProvider>
+              <App />
+              <ToastContainer />
+              <ConfirmModal />
+            </AuthProvider>
+          </SettingsProvider>
         </ConfirmProvider>
       </ToastProvider>
     </BrowserRouter>

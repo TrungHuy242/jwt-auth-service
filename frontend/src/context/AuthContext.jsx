@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { authApi } from "../api/authApi";
 import { tokenUtils } from "../utils/token";
-import { AUTH_EVENTS } from "../utils/authEvents";
+import { AUTH_EVENTS, resetSessionExpiredFlag } from "../utils/authEvents";
 
 const AuthContext = createContext(null);
 
@@ -17,6 +17,7 @@ export function AuthProvider({ children }) {
 
     try {
       const response = await authApi.getMe();
+      resetSessionExpiredFlag();
       setUser(response.user);
       localStorage.setItem("user", JSON.stringify(response.user));
     } catch (error) {
@@ -48,6 +49,7 @@ export function AuthProvider({ children }) {
     const response = await authApi.login({ email, password });
     const { accessToken, refreshToken, user: userData } = response;
     tokenUtils.setTokens({ accessToken, refreshToken });
+    resetSessionExpiredFlag();
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);
     return response;
@@ -60,6 +62,7 @@ export function AuthProvider({ children }) {
       // ignore logout API errors
     } finally {
       tokenUtils.clearTokens();
+      resetSessionExpiredFlag();
       localStorage.removeItem("user");
       setUser(null);
     }

@@ -4,15 +4,17 @@ import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../validations/authSchemas";
-import { FormError } from "../components/ui";
+import { AppBrand, FormError, MaintenanceBanner } from "../components/ui";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import { useSettings } from "../context/SettingsContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
+  const { settings } = useSettings();
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -57,10 +59,16 @@ function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mb-6">
+            <AppBrand size="lg" showSubtitle />
+          </div>
+
+          <MaintenanceBanner />
+
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900">Đăng nhập</h1>
             <p className="mt-2 text-sm text-slate-500">
-              Chào mừng bạn quay trở lại
+              Đăng nhập để tiếp tục sử dụng hệ thống
             </p>
           </div>
 
@@ -133,15 +141,21 @@ function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Chưa có tài khoản?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-blue-600 hover:text-blue-700"
-            >
-              Đăng ký ngay
-            </Link>
-          </p>
+          {settings.allowRegister ? (
+            <p className="mt-6 text-center text-sm text-slate-600">
+              Chưa có tài khoản?{" "}
+              <Link
+                to="/register"
+                className="font-semibold text-blue-600 hover:underline"
+              >
+                Đăng ký ngay
+              </Link>
+            </p>
+          ) : (
+            <p className="mt-6 text-center text-sm text-slate-500">
+              Hệ thống hiện đang tắt chức năng đăng ký tài khoản mới.
+            </p>
+          )}
         </div>
       </div>
     </div>

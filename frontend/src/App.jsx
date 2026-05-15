@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { useToast } from "./context/ToastContext";
+import { useSettings } from "./context/SettingsContext";
 import { AUTH_EVENTS } from "./utils/authEvents";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -15,6 +16,7 @@ import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminActivityLogsPage from "./pages/AdminActivityLogsPage";
 import AdminFilesPage from "./pages/AdminFilesPage";
+import AdminSettingsPage from "./pages/AdminSettingsPage";
 import {
   User,
   LogOut,
@@ -22,10 +24,12 @@ import {
   LayoutDashboard,
   Bell,
   FileText,
+  Settings,
 } from "lucide-react";
 
 function Navbar() {
   const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const { settings } = useSettings();
   const location = useLocation();
 
   const navLink = (to, label, icon) => {
@@ -49,11 +53,22 @@ function Navbar() {
   return (
     <nav className="border-b border-slate-200 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white">
-            <Shield size={18} />
-          </div>
-          <span className="text-lg font-bold text-slate-900">Auth Service</span>
+        <div className="flex items-center gap-3">
+          {settings.siteLogo ? (
+            <img
+              src={settings.siteLogo}
+              alt={settings.siteName}
+              className="h-9 w-9 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white">
+              {settings.siteName?.charAt(0)?.toUpperCase() || "F"}
+            </div>
+          )}
+
+          <span className="font-bold text-slate-900">
+            {settings.siteName}
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -68,6 +83,7 @@ function Navbar() {
                   <span className="text-xs font-medium uppercase text-slate-400">Admin:</span>
                   {navLink("/admin/dashboard", "Dashboard", <LayoutDashboard size={14} />)}
                   {navLink("/admin/files", "Files", <FileText size={14} />)}
+                  {navLink("/admin/settings", "Settings", <Settings size={14} />)}
                 </div>
               )}
               <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
@@ -156,6 +172,7 @@ function AppLayout({ children }) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { settings } = useSettings();
   const sessionExpiredToastShownRef = useRef(false);
 
   useEffect(() => {
@@ -184,6 +201,11 @@ function AppLayout({ children }) {
     <div className="min-h-screen bg-slate-50">
       <Navbar />
       <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+      <footer className="border-t border-slate-200 bg-white py-4">
+        <div className="mx-auto max-w-7xl px-4 text-center text-sm text-slate-500">
+          {settings.footerText}
+        </div>
+      </footer>
     </div>
   );
 }
@@ -260,6 +282,14 @@ function AppRoutes() {
           element={
             <AdminRoute>
               <AdminFilesPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <AdminRoute>
+              <AdminSettingsPage />
             </AdminRoute>
           }
         />

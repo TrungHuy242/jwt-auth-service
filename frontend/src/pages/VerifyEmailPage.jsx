@@ -4,7 +4,7 @@ import { CheckCircle, XCircle, Loader2, Mail, ArrowLeft } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { resendVerificationSchema } from "../validations/authSchemas";
-import { FormError } from "../components/ui";
+import { FormError, AppBrand, MaintenanceBanner } from "../components/ui";
 import { authApi } from "../api/authApi";
 import { useToast } from "../context/ToastContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
@@ -97,21 +97,27 @@ function VerifyEmailPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm text-center">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mb-6">
+            <AppBrand size="lg" showSubtitle />
+          </div>
+
+          <MaintenanceBanner />
+
           {status === "loading" && (
-            <>
+            <div className="text-center">
               <Loader2 size={48} className="mx-auto mb-4 animate-spin text-blue-600" />
-              <h1 className="text-2xl font-bold text-slate-900">Đang xác thực...</h1>
+              <h2 className="text-2xl font-bold text-slate-900">Đang xác thực...</h2>
               <p className="mt-2 text-sm text-slate-500">
                 Vui lòng chờ trong giây lát
               </p>
-            </>
+            </div>
           )}
 
           {status === "success" && (
-            <>
+            <div className="text-center">
               <CheckCircle size={48} className="mx-auto mb-4 text-green-600" />
-              <h1 className="text-2xl font-bold text-slate-900">Xác thực thành công!</h1>
+              <h2 className="text-2xl font-bold text-slate-900">Xác thực thành công!</h2>
               <p className="mt-2 text-sm text-slate-500">{message}</p>
               <Link
                 to="/login"
@@ -119,14 +125,16 @@ function VerifyEmailPage() {
               >
                 Đăng nhập ngay
               </Link>
-            </>
+            </div>
           )}
 
           {status === "error" && (
-            <>
-              <XCircle size={48} className="mx-auto mb-4 text-red-600" />
-              <h1 className="text-2xl font-bold text-slate-900">Xác thực thất bại</h1>
-              <p className="mt-2 text-sm text-slate-500">{message}</p>
+            <div>
+              <div className="text-center">
+                <XCircle size={48} className="mx-auto mb-4 text-red-600" />
+                <h2 className="text-2xl font-bold text-slate-900">Xác thực thất bại</h2>
+                <p className="mt-2 text-sm text-slate-500">{message}</p>
+              </div>
 
               <div className="mt-6 border-t border-slate-200 pt-6 text-left">
                 <p className="mb-3 text-sm font-medium text-slate-700">
@@ -190,7 +198,7 @@ function VerifyEmailPage() {
                   </Link>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

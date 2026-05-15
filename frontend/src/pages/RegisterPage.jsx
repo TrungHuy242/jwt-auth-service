@@ -1,16 +1,22 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../validations/authSchemas";
-import { FormError } from "../components/ui";
+import { AppBrand, FormError, MaintenanceBanner } from "../components/ui";
 import { authApi } from "../api/authApi";
 import { useToast } from "../context/ToastContext";
+import { useSettings } from "../context/SettingsContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 function RegisterPage() {
   const { toast } = useToast();
+  const { settings } = useSettings();
+
+  if (!settings.allowRegister) {
+    return <Navigate to="/login" replace />;
+  }
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -65,10 +71,16 @@ function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 px-4">
       <div className="w-full max-w-md">
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="mb-6">
+            <AppBrand size="lg" showSubtitle />
+          </div>
+
+          <MaintenanceBanner />
+
           <div className="text-center">
             <h1 className="text-2xl font-bold text-slate-900">Đăng ký</h1>
             <p className="mt-2 text-sm text-slate-500">
-              Tạo tài khoản mới để bắt đầu
+              Tạo tài khoản mới trên {settings.siteName}
             </p>
           </div>
 
