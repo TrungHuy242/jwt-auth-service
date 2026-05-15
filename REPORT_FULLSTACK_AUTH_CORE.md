@@ -493,6 +493,8 @@ Các quyền của ADMIN bao gồm:
 
 ## 7.3. Bảng phân quyền tổng quát
 
+**Bảng 1.** Bảng phân quyền người dùng
+
 | Chức năng | USER | ADMIN |
 |---|---|---:|---:|
 | Đăng ký | Có | Có |
@@ -570,6 +572,8 @@ ADMIN là quản trị viên của hệ thống. ADMIN kế thừa các chức n
 - Xóa file của user.
 
 ## 8.3. Sơ đồ Use Case tổng quát
+
+**Hình 1.** Sơ đồ Use Case tổng quát của hệ thống
 
 ```mermaid
 flowchart LR
@@ -810,6 +814,8 @@ Các bảng được thiết kế có quan hệ với nhau thông qua khóa chí
 
 ## 10.1. Sơ đồ quan hệ cơ sở dữ liệu
 
+**Hình 2.** Sơ đồ quan hệ cơ sở dữ liệu (ERD)
+
 ```mermaid
 erDiagram
     User ||--o{ RefreshToken : has
@@ -889,6 +895,8 @@ erDiagram
 
 ## 10.2. Bảng User
 
+**Bảng 2.** Mô tả cấu trúc bảng User
+
 Bảng User dùng để lưu thông tin tài khoản người dùng trong hệ thống. Đây là bảng trung tâm, được liên kết với nhiều bảng khác như RefreshToken, UploadedFile, Notification và ActivityLog.
 
 | Tên trường | Kiểu dữ liệu | Ý nghĩa |
@@ -927,6 +935,8 @@ Bảng User phục vụ các chức năng:
 
 ## 10.3. Bảng RefreshToken
 
+**Bảng 3.** Mô tả cấu trúc bảng RefreshToken
+
 Bảng RefreshToken dùng để lưu refresh token của người dùng sau khi đăng nhập. Việc lưu refresh token trong database giúp hệ thống có thể thu hồi phiên đăng nhập khi người dùng logout, đổi mật khẩu, reset mật khẩu, bị khóa tài khoản hoặc bị đổi role.
 
 | Tên trường | Kiểu dữ liệu | Ý nghĩa |
@@ -951,6 +961,8 @@ Bảng RefreshToken phục vụ các chức năng:
 - Thu hồi phiên đăng nhập khi admin đổi role user.
 
 ## 10.4. Bảng UploadedFile
+
+**Bảng 4.** Mô tả cấu trúc bảng UploadedFile
 
 Bảng UploadedFile dùng để lưu metadata của các file được upload lên hệ thống. File vật lý được lưu trong thư mục uploads, còn thông tin file được lưu trong database.
 
@@ -982,6 +994,8 @@ Bảng UploadedFile phục vụ các chức năng:
 - Admin quản lý toàn bộ file trong hệ thống.
 
 ## 10.5. Bảng Notification
+
+**Bảng 5.** Mô tả cấu trúc bảng Notification
 
 Bảng Notification dùng để lưu các thông báo trong hệ thống. Mỗi notification thuộc về một user cụ thể.
 
@@ -1021,6 +1035,8 @@ Bảng Notification phục vụ các chức năng:
 - Tạo thông báo khi khóa hoặc mở khóa tài khoản.
 
 ## 10.6. Bảng ActivityLog
+
+**Bảng 6.** Mô tả cấu trúc bảng ActivityLog
 
 Bảng ActivityLog dùng để lưu lại các hành động quan trọng của người dùng và quản trị viên. Đây là bảng phục vụ chức năng audit log, giúp admin có thể truy vết các thao tác trong hệ thống.
 
@@ -1141,6 +1157,8 @@ Các API dành cho quản trị viên yêu cầu người dùng có role là ADM
 
 ## 11.1. Auth API
 
+**Bảng 7.** Danh sách Auth API
+
 Nhóm API Auth dùng để xử lý đăng ký, đăng nhập, xác thực email, quên mật khẩu, reset mật khẩu và quản lý phiên đăng nhập.
 
 | Method | Endpoint | Chức năng | Quyền |
@@ -1188,6 +1206,8 @@ Response:
 
 ## 11.2. User Profile API
 
+**Bảng 8.** Danh sách User Profile API
+
 Nhóm API User Profile dùng để quản lý thông tin cá nhân của người dùng.
 
 | Method | Endpoint | Chức năng | Quyền |
@@ -1213,6 +1233,8 @@ Body:
 ```
 
 ## 11.3. Admin User API
+
+**Bảng 9.** Danh sách Admin User API
 
 Nhóm API Admin User dùng để quản trị viên quản lý người dùng trong hệ thống.
 
@@ -1262,6 +1284,8 @@ Body:
 
 ## 11.4. Upload File API
 
+**Bảng 10.** Danh sách Upload File API
+
 Nhóm API Upload dùng để upload và quản lý file trong hệ thống.
 
 | Method | Endpoint | Chức năng | Quyền |
@@ -1304,6 +1328,8 @@ folder: products
 
 ## 11.5. Email API
 
+**Bảng 11.** Danh sách Email API
+
 Nhóm API Email dùng để kiểm tra chức năng gửi email của hệ thống.
 
 | Method | Endpoint | Chức năng | Quyền |
@@ -1330,6 +1356,8 @@ Response:
 ```
 
 ## 11.6. Notification API
+
+**Bảng 12.** Danh sách Notification API
 
 Nhóm API Notification dùng để người dùng xem và quản lý thông báo của chính mình.
 
@@ -1366,6 +1394,8 @@ Authorization: Bearer access_token
 ```
 
 ## 11.7. Admin Notification API
+
+**Bảng 13.** Danh sách Admin Notification API
 
 Nhóm API Admin Notification dùng để quản trị viên gửi thông báo cho người dùng.
 
@@ -1419,6 +1449,8 @@ Có thể gửi theo role:
 
 ## 11.8. Activity Log API
 
+**Bảng 14.** Danh sách Activity Log API
+
 Nhóm API Activity Log dùng để admin theo dõi lịch sử hoạt động trong hệ thống.
 
 | Method | Endpoint | Chức năng | Quyền |
@@ -1453,6 +1485,8 @@ Authorization: Bearer admin_access_token
 
 ## 11.9. Admin Dashboard API
 
+**Bảng 15.** Danh sách Admin Dashboard API
+
 Nhóm API Admin Dashboard dùng để thống kê dữ liệu hệ thống cho quản trị viên.
 
 | Method | Endpoint | Chức năng | Quyền |
@@ -1486,6 +1520,8 @@ Response:
 ```
 
 ## 11.10. Health API
+
+**Bảng 16.** Danh sách Health API
 
 API Health dùng để kiểm tra trạng thái hoạt động của server và kết nối database.
 
@@ -1531,6 +1567,8 @@ Frontend được chia thành các nhóm giao diện chính:
 - Giao diện quản lý activity log.
 
 Hệ thống sử dụng React Router để điều hướng giữa các trang. Các trang yêu cầu đăng nhập được bảo vệ bằng ProtectedRoute. Các trang quản trị được bảo vệ bằng AdminRoute.
+
+> **Lưu ý về hình minh họa:** Các hình minh họa giao diện bên dưới nên được chụp trực tiếp từ ứng dụng và chèn vào báo cáo Word. Để tạo ảnh từ sơ đồ Mermaid, có thể sử dụng [mermaid.live](https://mermaid.live) để export ra PNG.
 
 ## 12.1. Bố cục tổng thể giao diện
 
@@ -2246,6 +2284,8 @@ Mục tiêu của quá trình kiểm thử là đảm bảo:
 
 ## 14.1. Môi trường kiểm thử
 
+**Bảng 17.** Cấu hình môi trường kiểm thử
+
 Hệ thống được kiểm thử trong môi trường local với cấu hình như sau:
 
 | Thành phần | Mô tả |
@@ -2271,6 +2311,8 @@ Trước khi kiểm thử, cần đảm bảo:
 
 ## 14.2. Tài khoản kiểm thử
 
+**Bảng 18.** Danh sách tài khoản kiểm thử
+
 Một số tài khoản dùng để kiểm thử hệ thống:
 
 | Loại tài khoản | Email | Password | Role | Status | isVerified |
@@ -2283,6 +2325,8 @@ Một số tài khoản dùng để kiểm thử hệ thống:
 Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai thực tế không nên sử dụng mật khẩu đơn giản và không nên công khai tài khoản thật.
 
 ## 14.3. Kiểm thử chức năng xác thực
+
+**Bảng 19.** Kết quả kiểm thử chức năng xác thực
 
 | STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|---|
@@ -2301,6 +2345,8 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 
 ## 14.4. Kiểm thử chức năng hồ sơ cá nhân
 
+**Bảng 20.** Kết quả kiểm thử chức năng hồ sơ cá nhân
+
 | STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|---|
 | 1 | Xem hồ sơ cá nhân | Access token hợp lệ | Trả thông tin user hiện tại | Đạt |
@@ -2312,6 +2358,8 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 | 7 | Xóa avatar | User có avatar | Xóa avatar thành công | Đạt |
 
 ## 14.5. Kiểm thử chức năng upload file
+
+**Bảng 21.** Kết quả kiểm thử chức năng upload file
 
 | STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|---|
@@ -2326,6 +2374,8 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 
 ## 14.6. Kiểm thử chức năng notification
 
+**Bảng 22.** Kết quả kiểm thử chức năng notification
+
 | STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|---|
 | 1 | User xem notification | Access token hợp lệ | Trả danh sách notification của user | Đạt |
@@ -2338,6 +2388,8 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 | 8 | User thường gọi API admin notification | Token USER | Trả lỗi không có quyền | Đạt |
 
 ## 14.7. Kiểm thử chức năng activity log
+
+**Bảng 23.** Kết quả kiểm thử chức năng activity log
 
 | STT | Hành động | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|
@@ -2359,6 +2411,8 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 
 ## 14.8. Kiểm thử chức năng Admin Dashboard
 
+**Bảng 24.** Kết quả kiểm thử chức năng Admin Dashboard
+
 | STT | Chức năng | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|
 | 1 | Xem dashboard overview | Trả tổng user, file, notification, activity log | Đạt |
@@ -2369,6 +2423,8 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 | 6 | User thường truy cập dashboard | Bị chuyển về profile hoặc trả lỗi không có quyền | Đạt |
 
 ## 14.9. Kiểm thử giao diện Frontend
+
+**Bảng 25.** Kết quả kiểm thử giao diện Frontend
 
 | STT | Màn hình | Nội dung kiểm thử | Kết quả mong đợi | Trạng thái |
 |---:|---|---|---|---|
@@ -2550,14 +2606,14 @@ Qua đề tài này, người thực hiện đã củng cố được kiến th�
 
 # TÀI LIỆU THAM KHẢO
 
-1. Tài liệu chính thức Node.js.
-2. Tài liệu chính thức Express.js.
-3. Tài liệu chính thức Prisma ORM.
-4. Tài liệu chính thức React.
-5. Tài liệu chính thức Vite.
-6. Tài liệu chính thức Tailwind CSS.
-7. Tài liệu chính thức React Router.
-8. Tài liệu chính thức Axios.
-9. Tài liệu JWT.
-10. Tài liệu Nodemailer.
-11. Tài liệu Multer.
+1. Node.js Documentation. Truy cập: https://nodejs.org/docs
+2. Express.js Documentation. Truy cập: https://expressjs.com
+3. Prisma ORM Documentation. Truy cập: https://prismajs.com
+4. React Documentation. Truy cập: https://react.dev
+5. Vite Documentation. Truy cập: https://vitejs.dev/guide
+6. Tailwind CSS Documentation. Truy cập: https://tailwindcss.com/docs
+7. React Router Documentation. Truy cập: https://reactrouter.com
+8. Axios Documentation. Truy cập: https://axios-http.com/docs
+9. JSON Web Tokens (JWT). Truy cập: https://jwt.io
+10. Nodemailer Documentation. Truy cập: https://nodemailer.com
+11. Multer Documentation. Truy cập: https://github.com/expressjs/multer
