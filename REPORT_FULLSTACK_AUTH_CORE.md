@@ -2401,10 +2401,163 @@ Tuy nhiên, hệ thống hiện tại mới được kiểm thử thủ công. T
 
 # 15. HƯỚNG PHÁT TRIỂN
 
-*(Nội dung sẽ được điền sau)*
+Hệ thống Full-stack Auth Core hiện tại đã hoàn thành các chức năng nền tảng quan trọng như xác thực người dùng, quản lý hồ sơ cá nhân, upload file, gửi email, notification, activity log và dashboard quản trị. Tuy nhiên, để hệ thống có thể ứng dụng vào các bài toán thực tế lớn hơn, trong tương lai có thể tiếp tục phát triển theo nhiều hướng khác nhau.
+
+## 15.1. Hoàn thiện chức năng kỹ thuật
+
+Trong giai đoạn tiếp theo, hệ thống có thể được cải tiến thêm các chức năng kỹ thuật nhằm tăng tính ổn định, bảo mật và trải nghiệm người dùng.
+
+Các hướng phát triển kỹ thuật gồm:
+
+- Bổ sung cơ chế tự động refresh access token ở Frontend.
+- Bổ sung toast notification để hiển thị thông báo đẹp hơn.
+- Bổ sung loading skeleton cho các trang dữ liệu.
+- Cải thiện form validation bằng thư viện như React Hook Form hoặc Yup.
+- Bổ sung Error Boundary để xử lý lỗi giao diện.
+- Bổ sung unit test cho service và controller.
+- Bổ sung integration test cho API.
+- Bổ sung end-to-end test cho luồng đăng ký, đăng nhập và admin.
+- Bổ sung rate limiting để hạn chế spam API.
+- Bổ sung giới hạn số lần đăng nhập sai.
+- Bổ sung xác thực hai lớp nếu cần.
+- Bổ sung Docker Compose để chạy Backend, Frontend và Database cùng lúc.
+- Chuẩn hóa response API toàn hệ thống.
+- Tối ưu dashboard bằng biểu đồ trực quan hơn.
+
+## 15.2. Mở rộng thành hệ thống bán hàng
+
+Nếu phát triển thành hệ thống bán hàng, có thể bổ sung các module sau:
+
+- Quản lý sản phẩm.
+- Quản lý danh mục sản phẩm.
+- Quản lý giỏ hàng.
+- Quản lý đơn hàng.
+- Thanh toán.
+- Đánh giá sản phẩm.
+- Quản lý mã giảm giá.
+- Quản lý tồn kho.
+- Thống kê doanh thu.
+
+Khi đó, các module lõi hiện tại có thể được tái sử dụng như sau:
+
+- Auth dùng cho khách hàng và admin.
+- Upload file dùng cho hình ảnh sản phẩm.
+- Email dùng để gửi xác nhận đơn hàng.
+- Notification dùng để thông báo trạng thái đơn hàng.
+- Activity log dùng để ghi lại thao tác quản trị sản phẩm và đơn hàng.
+- Admin dashboard mở rộng thêm thống kê doanh thu và đơn hàng.
+
+## 15.3. Mở rộng thành hệ thống đặt lịch khám
+
+Nếu phát triển thành hệ thống đặt lịch khám, có thể bổ sung các module:
+
+- Quản lý bác sĩ.
+- Quản lý bệnh nhân.
+- Quản lý lịch làm việc của bác sĩ.
+- Đặt lịch khám.
+- Quản lý hồ sơ bệnh án.
+- Quản lý đơn thuốc.
+- Thanh toán lịch khám.
+- Nhắc lịch khám qua email hoặc notification.
+
+Các module lõi hiện tại có thể hỗ trợ:
+
+- Auth dùng cho bệnh nhân, bác sĩ và admin.
+- Profile dùng để quản lý thông tin cá nhân.
+- Upload file dùng để lưu ảnh đại diện hoặc tài liệu y tế.
+- Email dùng để gửi xác nhận lịch khám.
+- Notification dùng để nhắc lịch khám.
+- Activity log dùng để ghi lại các thao tác quan trọng.
+- Dashboard dùng để thống kê lịch khám và người dùng.
+
+## 15.4. Mở rộng thành hệ thống LMS học trực tuyến
+
+Nếu phát triển thành hệ thống LMS, có thể bổ sung các module:
+
+- Quản lý khóa học.
+- Quản lý bài học.
+- Quản lý giảng viên.
+- Quản lý học viên.
+- Đăng ký khóa học.
+- Bài tập.
+- Bài kiểm tra.
+- Chứng chỉ.
+- Theo dõi tiến độ học tập.
+
+Các module lõi hiện tại có thể tái sử dụng:
+
+- Auth dùng cho học viên, giảng viên và admin.
+- Upload file dùng để upload tài liệu học tập, video, hình ảnh.
+- Email dùng để gửi thông báo khóa học.
+- Notification dùng để nhắc bài học hoặc bài kiểm tra.
+- Activity log dùng để ghi lại hoạt động học tập và quản trị.
+- Dashboard mở rộng thêm thống kê khóa học, học viên và tiến độ học tập.
+
+## 15.5. Định hướng triển khai thực tế
+
+Để triển khai thực tế, hệ thống có thể được nâng cấp thêm:
+
+- Deploy Backend lên Render, Railway, VPS hoặc Cloud Server.
+- Deploy Frontend lên Vercel hoặc Netlify.
+- Sử dụng database cloud như PostgreSQL, MySQL Cloud hoặc Supabase.
+- Lưu file bằng dịch vụ cloud như Cloudinary, AWS S3 hoặc Firebase Storage.
+- Cấu hình domain riêng.
+- Cấu hình HTTPS.
+- Cấu hình CI/CD để tự động build và deploy.
+- Tối ưu bảo mật biến môi trường.
+- Theo dõi log server và lỗi hệ thống.
 
 ---
 
 # 16. KẾT LUẬN
 
-*(Nội dung sẽ được điền sau)*
+Qua quá trình phân tích, thiết kế và xây dựng hệ thống, đề tài "Xây dựng hệ thống lõi xác thực, quản lý người dùng và quản trị hệ thống Full-stack" đã hoàn thành được các mục tiêu chính đề ra.
+
+Hệ thống đã xây dựng được một nền tảng Full-stack bao gồm Backend và Frontend. Backend được phát triển bằng Node.js, Express.js, Prisma ORM và SQL Database. Frontend được xây dựng bằng React, Vite và Tailwind CSS. Hai phần được kết nối thông qua RESTful API.
+
+Các chức năng chính đã hoàn thành bao gồm:
+
+- Đăng ký tài khoản.
+- Xác thực email.
+- Đăng nhập bằng JWT.
+- Refresh token.
+- Đăng xuất.
+- Đổi mật khẩu.
+- Quên mật khẩu và reset mật khẩu.
+- Đăng nhập Google/Facebook.
+- Quản lý hồ sơ cá nhân.
+- Upload và xóa avatar.
+- Upload và quản lý file.
+- Gửi email tự động.
+- Xem và quản lý notification.
+- Admin quản lý người dùng.
+- Admin đổi role, khóa và mở khóa user.
+- Ghi activity log cho các hành động quan trọng.
+- Admin xem dashboard thống kê hệ thống.
+- Frontend có ProtectedRoute và AdminRoute để bảo vệ giao diện.
+
+Về mặt phân tích thiết kế, hệ thống đã xác định rõ các tác nhân chính, phân quyền người dùng, các use case quan trọng, thiết kế cơ sở dữ liệu, thiết kế API, thiết kế giao diện, cơ chế bảo mật và quy trình kiểm thử.
+
+Về mặt kỹ thuật, hệ thống đã áp dụng nhiều cơ chế quan trọng thường gặp trong các hệ thống thực tế như mã hóa mật khẩu bằng bcrypt, xác thực bằng JWT, quản lý refresh token, xác thực email, reset password bằng token, phân quyền theo role, kiểm tra trạng thái tài khoản, upload file có kiểm soát, notification và activity log.
+
+Kết quả đạt được là một bộ khung hệ thống lõi có thể tái sử dụng cho nhiều đồ án lớn khác nhau. Khi cần phát triển thành một hệ thống cụ thể như bán hàng, đặt lịch khám, học trực tuyến hoặc quản lý sinh viên, có thể tiếp tục bổ sung các module nghiệp vụ dựa trên nền tảng đã xây dựng.
+
+Tuy hệ thống vẫn còn một số hướng cần hoàn thiện thêm như test tự động, refresh token tự động trên frontend, Docker Compose, rate limiting nâng cao và deploy thực tế, nhưng với phạm vi đồ án hiện tại, hệ thống đã đáp ứng tốt các yêu cầu cốt lõi và có tính ứng dụng cao.
+
+Qua đề tài này, người thực hiện đã củng cố được kiến thức về phát triển hệ thống Full-stack, thiết kế RESTful API, quản lý cơ sở dữ liệu, xác thực người dùng, bảo mật tài khoản, phân quyền, quản trị hệ thống và xây dựng giao diện người dùng. Đây là nền tảng quan trọng để tiếp tục phát triển các hệ thống phần mềm hoàn chỉnh hơn trong tương lai.
+
+---
+
+# TÀI LIỆU THAM KHẢO
+
+1. Tài liệu chính thức Node.js.
+2. Tài liệu chính thức Express.js.
+3. Tài liệu chính thức Prisma ORM.
+4. Tài liệu chính thức React.
+5. Tài liệu chính thức Vite.
+6. Tài liệu chính thức Tailwind CSS.
+7. Tài liệu chính thức React Router.
+8. Tài liệu chính thức Axios.
+9. Tài liệu JWT.
+10. Tài liệu Nodemailer.
+11. Tài liệu Multer.
