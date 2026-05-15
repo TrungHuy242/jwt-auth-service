@@ -2231,7 +2231,171 @@ Trong tương lai, hệ thống có thể nâng cấp thêm các cơ chế bảo
 
 # 14. KIỂM THỬ HỆ THỐNG
 
-*(Nội dung sẽ được điền sau)*
+Kiểm thử hệ thống là bước quan trọng nhằm đảm bảo các chức năng đã xây dựng hoạt động đúng theo yêu cầu. Trong đề tài này, hệ thống được kiểm thử thông qua cả Backend API và Frontend giao diện người dùng.
+
+Backend được kiểm thử chủ yếu bằng Postman để gọi trực tiếp các API. Frontend được kiểm thử bằng trình duyệt thông qua các thao tác đăng ký, đăng nhập, cập nhật hồ sơ, upload avatar, xem notification và sử dụng các chức năng quản trị.
+
+Mục tiêu của quá trình kiểm thử là đảm bảo:
+
+- Các API trả về đúng dữ liệu.
+- Các chức năng xác thực hoạt động chính xác.
+- User thường không truy cập được chức năng admin.
+- Admin quản lý được user, notification và activity log.
+- Frontend hiển thị đúng dữ liệu từ Backend.
+- Các lỗi phổ biến được xử lý và hiển thị rõ ràng.
+
+## 14.1. Môi trường kiểm thử
+
+Hệ thống được kiểm thử trong môi trường local với cấu hình như sau:
+
+| Thành phần | Mô tả |
+|---|---|
+| Backend | Node.js, Express.js |
+| Frontend | React, Vite, Tailwind CSS |
+| Database | SQL Database |
+| ORM | Prisma |
+| API Testing Tool | Postman |
+| Browser | Google Chrome |
+| Backend URL | `http://localhost:5000` |
+| Frontend URL | `http://localhost:5173` |
+| API Base URL | `http://localhost:5000/api` |
+
+Trước khi kiểm thử, cần đảm bảo:
+
+- Database đã được bật.
+- Backend chạy thành công.
+- Frontend chạy thành công.
+- File `.env` của Backend và Frontend đã cấu hình đúng.
+- Prisma migration đã được chạy.
+- Có ít nhất một tài khoản ADMIN để kiểm thử chức năng quản trị.
+
+## 14.2. Tài khoản kiểm thử
+
+Một số tài khoản dùng để kiểm thử hệ thống:
+
+| Loại tài khoản | Email | Password | Role | Status | isVerified |
+|---|---|---|---|---|---|
+| Admin | admin@gmail.com | 123456 | ADMIN | ACTIVE | true |
+| User thường | user@gmail.com | 123456 | USER | ACTIVE | true |
+| User bị khóa | blocked@gmail.com | 123456 | USER | BLOCKED | true |
+| User chưa xác thực | unverified@gmail.com | 123456 | USER | ACTIVE | false |
+
+Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai thực tế không nên sử dụng mật khẩu đơn giản và không nên công khai tài khoản thật.
+
+## 14.3. Kiểm thử chức năng xác thực
+
+| STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|---|
+| 1 | Đăng ký tài khoản | Name, email mới, password hợp lệ | Tạo user mới, gửi email xác thực | Đạt |
+| 2 | Đăng ký email đã tồn tại | Email đã có trong database | Trả lỗi email đã được sử dụng | Đạt |
+| 3 | Xác thực email | Token hợp lệ | Cập nhật `isVerified = true` | Đạt |
+| 4 | Xác thực email token sai | Token không hợp lệ | Trả lỗi token không hợp lệ hoặc hết hạn | Đạt |
+| 5 | Đăng nhập đúng thông tin | Email và password đúng | Trả accessToken, refreshToken và user | Đạt |
+| 6 | Đăng nhập sai mật khẩu | Password sai | Trả lỗi email hoặc mật khẩu không đúng | Đạt |
+| 7 | Đăng nhập tài khoản chưa verify | `isVerified = false` | Không cho đăng nhập | Đạt |
+| 8 | Đăng nhập tài khoản bị khóa | `status = BLOCKED` | Không cho đăng nhập | Đạt |
+| 9 | Logout | Refresh token hợp lệ | Thu hồi refresh token | Đạt |
+| 10 | Đổi mật khẩu | Old password đúng, new password hợp lệ | Đổi mật khẩu thành công, thu hồi token cũ | Đạt |
+| 11 | Quên mật khẩu | Email hợp lệ | Gửi email reset password | Đạt |
+| 12 | Reset mật khẩu | Reset token hợp lệ | Cập nhật mật khẩu mới | Đạt |
+
+## 14.4. Kiểm thử chức năng hồ sơ cá nhân
+
+| STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|---|
+| 1 | Xem hồ sơ cá nhân | Access token hợp lệ | Trả thông tin user hiện tại | Đạt |
+| 2 | Cập nhật họ tên | Name mới | Cập nhật name thành công | Đạt |
+| 3 | Cập nhật số điện thoại | Phone mới | Cập nhật phone thành công | Đạt |
+| 4 | Cập nhật địa chỉ | Address mới | Cập nhật address thành công | Đạt |
+| 5 | Upload avatar | File ảnh hợp lệ | Upload thành công, avatar URL được cập nhật | Đạt |
+| 6 | Upload avatar sai định dạng | File không phải ảnh | Trả lỗi định dạng file | Đạt |
+| 7 | Xóa avatar | User có avatar | Xóa avatar thành công | Đạt |
+
+## 14.5. Kiểm thử chức năng upload file
+
+| STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|---|
+| 1 | Upload một file | File hợp lệ | File được lưu, metadata được tạo | Đạt |
+| 2 | Upload nhiều file | Nhiều file hợp lệ | Tất cả file được lưu | Đạt |
+| 3 | Lấy danh sách file | Access token hợp lệ | Trả danh sách file của user | Đạt |
+| 4 | Lọc file theo folder | folder = documents | Trả file thuộc folder tương ứng | Đạt |
+| 5 | Xem chi tiết file | ID file hợp lệ | Trả thông tin chi tiết file | Đạt |
+| 6 | Xóa file của chính mình | ID file thuộc user | Xóa file vật lý và record database | Đạt |
+| 7 | User xóa file người khác | ID file không thuộc user | Trả lỗi không có quyền | Đạt |
+| 8 | Admin xóa file bất kỳ | Token admin | Xóa được file | Đạt |
+
+## 14.6. Kiểm thử chức năng notification
+
+| STT | Chức năng | Dữ liệu kiểm thử | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|---|
+| 1 | User xem notification | Access token hợp lệ | Trả danh sách notification của user | Đạt |
+| 2 | Đếm notification chưa đọc | User có notification chưa đọc | Trả đúng unread count | Đạt |
+| 3 | Đánh dấu một notification đã đọc | ID notification hợp lệ | `isRead = true` | Đạt |
+| 4 | Đánh dấu tất cả đã đọc | User có nhiều notification chưa đọc | Tất cả notification chuyển sang đã đọc | Đạt |
+| 5 | Admin gửi notification cho user | ID user hợp lệ | User nhận notification mới | Đạt |
+| 6 | Admin broadcast notification | Danh sách user ACTIVE | Tạo notification cho nhiều user | Đạt |
+| 7 | Broadcast theo role | role = USER | Chỉ user role USER nhận notification | Đạt |
+| 8 | User thường gọi API admin notification | Token USER | Trả lỗi không có quyền | Đạt |
+
+## 14.7. Kiểm thử chức năng activity log
+
+| STT | Hành động | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|
+| 1 | User login | Tạo log `LOGIN` | Đạt |
+| 2 | User logout | Tạo log `LOGOUT` | Đạt |
+| 3 | User đổi mật khẩu | Tạo log `CHANGE_PASSWORD` | Đạt |
+| 4 | User reset mật khẩu | Tạo log `RESET_PASSWORD` | Đạt |
+| 5 | User upload file | Tạo log `UPLOAD_FILE` | Đạt |
+| 6 | User upload nhiều file | Tạo log `UPLOAD_MULTIPLE_FILES` | Đạt |
+| 7 | User xóa file | Tạo log `DELETE_FILE` | Đạt |
+| 8 | Admin đổi role user | Tạo log `UPDATE_USER_ROLE` | Đạt |
+| 9 | Admin khóa / mở khóa user | Tạo log `UPDATE_USER_STATUS` | Đạt |
+| 10 | Admin gửi notification cho user | Tạo log `SEND_NOTIFICATION_TO_USER` | Đạt |
+| 11 | Admin broadcast notification | Tạo log `BROADCAST_NOTIFICATION` | Đạt |
+| 12 | Admin xem danh sách log | Trả danh sách log có phân trang | Đạt |
+| 13 | Admin lọc log theo action/method/userId | Trả dữ liệu đúng điều kiện | Đạt |
+| 14 | Admin xem chi tiết log | Trả đầy đủ thông tin log | Đạt |
+| 15 | User thường xem activity log | Trả lỗi không có quyền | Đạt |
+
+## 14.8. Kiểm thử chức năng Admin Dashboard
+
+| STT | Chức năng | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|
+| 1 | Xem dashboard overview | Trả tổng user, file, notification, activity log | Đạt |
+| 2 | Xem user statistics | Trả user theo role, provider, status | Đạt |
+| 3 | Xem file statistics | Trả file theo type, folder và tổng dung lượng | Đạt |
+| 4 | Xem system statistics | Trả notification và activity log statistics | Đạt |
+| 5 | Xem recent activities | Trả user, file, notification và log gần đây | Đạt |
+| 6 | User thường truy cập dashboard | Bị chuyển về profile hoặc trả lỗi không có quyền | Đạt |
+
+## 14.9. Kiểm thử giao diện Frontend
+
+| STT | Màn hình | Nội dung kiểm thử | Kết quả mong đợi | Trạng thái |
+|---:|---|---|---|---|
+| 1 | Login | Đăng nhập đúng/sai thông tin | Hiển thị kết quả hoặc lỗi phù hợp | Đạt |
+| 2 | Register | Đăng ký tài khoản mới | Hiển thị thông báo thành công | Đạt |
+| 3 | Verify Email | Mở link verify email | Xác thực email thành công | Đạt |
+| 4 | Forgot Password | Nhập email quên mật khẩu | Hiển thị thông báo gửi email | Đạt |
+| 5 | Reset Password | Nhập mật khẩu mới | Đặt lại mật khẩu thành công | Đạt |
+| 6 | Profile | Cập nhật thông tin cá nhân | Giao diện cập nhật dữ liệu mới | Đạt |
+| 7 | Profile | Upload và xóa avatar | Avatar hiển thị/xóa đúng | Đạt |
+| 8 | Notifications | Xem, lọc, đánh dấu đã đọc | Dữ liệu cập nhật đúng | Đạt |
+| 9 | Admin Dashboard | Xem thống kê | Card thống kê hiển thị đúng | Đạt |
+| 10 | Admin Users | Tìm kiếm, lọc, đổi role, khóa user | Dữ liệu cập nhật đúng | Đạt |
+| 11 | Admin Activity Logs | Tìm kiếm, lọc, xem chi tiết log | Modal chi tiết hiển thị đúng | Đạt |
+| 12 | Protected Route | Chưa login vào `/profile` | Tự chuyển về `/login` | Đạt |
+| 13 | Admin Route | USER vào `/admin/dashboard` | Tự chuyển về `/profile` | Đạt |
+| 14 | Logout | Bấm logout | Xóa token và chuyển về login | Đạt |
+
+## 14.10. Nhận xét kết quả kiểm thử
+
+Sau quá trình kiểm thử, các chức năng chính của hệ thống đều hoạt động đúng theo yêu cầu đã đặt ra. Các chức năng xác thực, quản lý người dùng, upload file, gửi email, notification, activity log và admin dashboard đều có thể sử dụng ổn định trong môi trường local.
+
+Hệ thống cũng xử lý tốt các trường hợp lỗi phổ biến như đăng nhập sai mật khẩu, tài khoản chưa xác thực email, tài khoản bị khóa, token không hợp lệ, user thường truy cập chức năng admin và upload file sai định dạng.
+
+Frontend hiển thị dữ liệu đúng từ Backend, có thông báo lỗi và thông báo thành công rõ ràng. Các route bảo vệ như ProtectedRoute và AdminRoute hoạt động đúng, đảm bảo user chưa đăng nhập hoặc user không có quyền admin không thể truy cập các trang quản trị.
+
+Tuy nhiên, hệ thống hiện tại mới được kiểm thử thủ công. Trong tương lai, có thể bổ sung thêm unit test, integration test và end-to-end test để tăng độ tin cậy khi mở rộng hệ thống.
 
 ---
 
