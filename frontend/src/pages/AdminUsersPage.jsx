@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { RefreshCcw, Search, Shield, UserCog } from "lucide-react";
+import { RefreshCcw, Search, Shield, ShieldCheck, UserCog, X } from "lucide-react";
 import { adminApi } from "../api/adminApi";
+import { roleApi } from "../api/roleApi";
 import { TableSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
 import { useConfirm } from "../context/ConfirmContext";
@@ -12,6 +13,7 @@ function AdminUsersPage() {
   const { confirm } = useConfirm();
 
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -30,6 +32,11 @@ function AdminUsersPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedRoleIds, setSelectedRoleIds] = useState([]);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   const fetchUsers = async (page = 1) => {
     try {
@@ -62,7 +69,7 @@ function AdminUsersPage() {
       setUsers(response.users || []);
       setPagination(response.pagination);
     } catch (error) {
-      const message = getErrorMessage(error, "Không thể tải danh sách người dùng");
+      const message = getErrorMessage(error, "Khong tai duoc danh sach nguoi dung");
       setError(message);
       toast.error(message);
     } finally {
@@ -70,8 +77,19 @@ function AdminUsersPage() {
     }
   };
 
+  const fetchRoles = async () => {
+    try {
+      const response = await roleApi.getRoles();
+      setRoles(response.roles || []);
+    } catch (error) {
+      const message = getErrorMessage(error, "Khong tai duoc danh sach role");
+      toast.error(message);
+    }
+  };
+
   useEffect(() => {
     fetchUsers(1);
+    fetchRoles();
   }, [filters.role, filters.status, filters.provider]);
 
   const handleSearchSubmit = (event) => {
@@ -95,40 +113,6 @@ function AdminUsersPage() {
     fetchUsers(pagination.page);
   };
 
-  const handleUpdateRole = async (userId, newRole) => {
-    const ok = await confirm(
-      confirmPresets.warning({
-        title: "Đổi role người dùng",
-        message: `Bạn có chắc muốn đổi role của người dùng này thành ${newRole}? Sau khi đổi role, quyền truy cập của người dùng sẽ thay đổi.`,
-        confirmText: `Đổi thành ${newRole}`,
-      })
-    );
-
-    if (!ok) {
-      return;
-    }
-
-    try {
-      setActionLoading(true);
-      setError("");
-      setSuccessMessage("");
-
-      const response = await adminApi.updateUserRole(userId, newRole);
-
-      const message = getSuccessMessage(response, "Cập nhật role thành công");
-      setSuccessMessage(message);
-      toast.success(message);
-
-      await fetchUsers(pagination.page);
-    } catch (error) {
-      const message = getErrorMessage(error, "Cập nhật role thất bại");
-      setError(message);
-      toast.error(message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
   const handleUpdateStatus = async (userId, newStatus) => {
     const isBlock = newStatus === "BLOCKED";
 
@@ -136,11 +120,11 @@ function AdminUsersPage() {
       isBlock
         ? confirmPresets.block({
             message:
-              "Bạn có chắc muốn khóa tài khoản này không? Người dùng sẽ không thể đăng nhập cho đến khi được mở khóa.",
+              "Ban co chan muon khoa tai khoan nay khong? Nguoi dung se khong the dang nhap cho den khi duoc mo khoa.",
           })
         : confirmPresets.unblock({
             message:
-              "Bạn có chắc muốn mở khóa tài khoản này không? Người dùng sẽ có thể đăng nhập lại.",
+              "Ban co chan muon mo khoa tai khoan nay khong? Nguoi dung se co the dang nhap lai.",
           })
     );
 
@@ -155,13 +139,13 @@ function AdminUsersPage() {
 
       const response = await adminApi.updateUserStatus(userId, newStatus);
 
-      const message = getSuccessMessage(response, "Cập nhật trạng thái thành công");
+      const message = getSuccessMessage(response, "Cap nhat trang thai thanh cong");
       setSuccessMessage(message);
       toast.success(message);
 
       await fetchUsers(pagination.page);
     } catch (error) {
-      const message = getErrorMessage(error, "Cập nhật trạng thái thất bại");
+      const message = getErrorMessage(error, "Cap nhat trang thai that bai");
       setError(message);
       toast.error(message);
     } finally {
@@ -169,10 +153,74 @@ function AdminUsersPage() {
     }
   };
 
-  const getRoleBadgeClass = (role) => {
-    return role === "ADMIN"
-      ? "bg-purple-50 text-purple-700"
-      : "bg-blue-50 text-blue-700";
+  const openRoleModal = (user) => {
+    setSelectedUser(user);
+
+    const userRoleIds =
+      user.userRoles?.map((userRole) => userRole.roleId) || [];
+
+    if (userRoleIds.length > 0) {
+      setSelectedRoleIds(userRoleIds);
+    } else {
+      const fallbackRole = roles.find((role) => role.name === user.role);
+      setSelectedRoleIds(fallbackRole ? [fallbackRole.id] : []);
+    }
+
+    setRoleModalOpen(true);
+  };
+
+  const closeRoleModal = () => {
+    if (roleLoading) return;
+
+    setRoleModalOpen(false);
+    setSelectedUser(null);
+    setSelectedRoleIds([]);
+  };
+
+  const toggleRole = (roleId) => {
+    setSelectedRoleIds((prev) => {
+      if (prev.includes(roleId)) {
+        return prev.filter((id) => id !== roleId);
+      }
+      return [...prev, roleId];
+    });
+  };
+
+  const handleSaveUserRoles = async () => {
+    if (!selectedUser) return;
+
+    if (selectedRoleIds.length === 0) {
+      toast.warning("User phai co it nhat mot role");
+      return;
+    }
+
+    try {
+      setRoleLoading(true);
+      setError("");
+      setSuccessMessage("");
+
+      const response = await roleApi.updateUserRoles(
+        selectedUser.id,
+        selectedRoleIds
+      );
+
+      const message = getSuccessMessage(
+        response,
+        "Cap nhat role cho user thanh cong"
+      );
+
+      setSuccessMessage(message);
+      toast.success(message);
+
+      closeRoleModal();
+      await fetchUsers(pagination.page);
+    } catch (error) {
+      const message = getErrorMessage(error, "Cap nhat role cho user that bai");
+      setError(message);
+      toast.error(message);
+    } finally {
+      setRoleLoading(false);
+    }
   };
 
   const getStatusBadgeClass = (status) => {
@@ -198,10 +246,10 @@ function AdminUsersPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
             <UserCog className="text-blue-600" />
-            Quản lý người dùng
+            Quan ly nguoi dung
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Tìm kiếm, lọc, đổi role và khóa / mở khóa tài khoản
+            Tim kiem, loc, gan role va khoa / mo khoa tai khoan
           </p>
         </div>
 
@@ -211,7 +259,7 @@ function AdminUsersPage() {
           className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
         >
           <RefreshCcw size={16} />
-          {loading ? "Đang tải..." : "Tải lại"}
+          {loading ? "Dang tai..." : "Tai lai"}
         </button>
       </div>
 
@@ -231,7 +279,7 @@ function AdminUsersPage() {
         <form onSubmit={handleSearchSubmit} className="grid gap-4 lg:grid-cols-[1fr_160px_160px_160px_auto]">
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">
-              Tìm kiếm
+              Tim kiem
             </label>
 
             <div className="relative">
@@ -245,7 +293,7 @@ function AdminUsersPage() {
                 name="search"
                 value={filters.search}
                 onChange={handleFilterChange}
-                placeholder="Tên, email hoặc số điện thoại"
+                placeholder="Ten, email hoac so dien thoai"
                 className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               />
             </div>
@@ -262,7 +310,7 @@ function AdminUsersPage() {
               onChange={handleFilterChange}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Tất cả</option>
+              <option value="">Tat ca</option>
               <option value="USER">USER</option>
               <option value="ADMIN">ADMIN</option>
             </select>
@@ -279,7 +327,7 @@ function AdminUsersPage() {
               onChange={handleFilterChange}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Tất cả</option>
+              <option value="">Tat ca</option>
               <option value="ACTIVE">ACTIVE</option>
               <option value="BLOCKED">BLOCKED</option>
             </select>
@@ -296,7 +344,7 @@ function AdminUsersPage() {
               onChange={handleFilterChange}
               className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
             >
-              <option value="">Tất cả</option>
+              <option value="">Tat ca</option>
               <option value="local">local</option>
               <option value="google">google</option>
               <option value="facebook">facebook</option>
@@ -310,7 +358,7 @@ function AdminUsersPage() {
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
             >
               <Search size={18} />
-              Tìm
+              Tim
             </button>
           </div>
         </form>
@@ -352,7 +400,7 @@ function AdminUsersPage() {
                 {users.length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
-                      Không có người dùng nào.
+                      Khong co nguoi dung nao.
                     </td>
                   </tr>
                 ) : (
@@ -383,13 +431,22 @@ function AdminUsersPage() {
                       </td>
 
                       <td className="px-4 py-4">
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${getRoleBadgeClass(
-                            user.role
-                          )}`}
-                        >
-                          {user.role}
-                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {user.userRoles?.length > 0 ? (
+                            user.userRoles.map((userRole) => (
+                              <span
+                                key={userRole.id}
+                                className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700"
+                              >
+                                {userRole.role?.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                              {user.role}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       <td className="px-4 py-4">
@@ -434,16 +491,11 @@ function AdminUsersPage() {
                         <div className="flex flex-wrap justify-end gap-2">
                           <button
                             disabled={actionLoading}
-                            onClick={() =>
-                              handleUpdateRole(
-                                user.id,
-                                user.role === "ADMIN" ? "USER" : "ADMIN"
-                              )
-                            }
+                            onClick={() => openRoleModal(user)}
                             className="flex items-center gap-1 rounded-xl border border-purple-200 px-3 py-2 text-xs font-medium text-purple-700 hover:bg-purple-50 disabled:opacity-60"
                           >
-                            <Shield size={14} />
-                            {user.role === "ADMIN" ? "Set USER" : "Set ADMIN"}
+                            <ShieldCheck size={14} />
+                            Gan role
                           </button>
 
                           <button
@@ -460,7 +512,7 @@ function AdminUsersPage() {
                                 : "border-green-200 text-green-700 hover:bg-green-50"
                             }`}
                           >
-                            {user.status === "ACTIVE" ? "Khóa" : "Mở khóa"}
+                            {user.status === "ACTIVE" ? "Khoa" : "Mo khoa"}
                           </button>
                         </div>
                       </td>
@@ -475,7 +527,7 @@ function AdminUsersPage() {
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
-          Trang {pagination.page} / {pagination.totalPages || 1} - Tổng{" "}
+          Trang {pagination.page} / {pagination.totalPages || 1} - Tong{" "}
           {pagination.totalUsers || 0} user
         </p>
 
@@ -485,7 +537,7 @@ function AdminUsersPage() {
             onClick={() => fetchUsers(pagination.page - 1)}
             className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Trước
+            Truoc
           </button>
 
           <button
@@ -497,6 +549,106 @@ function AdminUsersPage() {
           </button>
         </div>
       </div>
+
+      {roleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Gan role cho user
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {selectedUser?.name} - {selectedUser?.email}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={closeRoleModal}
+                disabled={roleLoading}
+                className="rounded-xl border border-slate-300 p-2 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              Da chon{" "}
+              <span className="font-bold">{selectedRoleIds.length}</span> role.
+              User phai co it nhat mot role.
+            </div>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {roles.map((role) => {
+                const checked = selectedRoleIds.includes(role.id);
+
+                return (
+                  <label
+                    key={role.id}
+                    className={`cursor-pointer rounded-2xl border p-4 transition ${
+                      checked
+                        ? "border-blue-200 bg-blue-50"
+                        : "border-slate-200 bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleRole(role.id)}
+                        className="mt-1 h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-slate-800">
+                            {role.name}
+                          </p>
+
+                          {role.isSystem && (
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">
+                              System
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="mt-1 text-sm text-slate-500">
+                          {role.description || "Khong co mo ta"}
+                        </p>
+
+                        <p className="mt-2 text-xs text-slate-400">
+                          {role.rolePermissions?.length || 0} permission
+                        </p>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeRoleModal}
+                disabled={roleLoading}
+                className="rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Huy
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSaveUserRoles}
+                disabled={roleLoading}
+                className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
+              >
+                {roleLoading ? "Dang luu..." : "Luu role"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

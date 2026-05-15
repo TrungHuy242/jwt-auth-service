@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
 const { sendEmail } = require("../services/email.service");
 const { getPublicSettings } = require("../services/setting.service");
+const { getUserPermissionKeys } = require("../services/permission.service");
 const {
   resetPasswordTemplate,
   verifyEmailTemplate,
@@ -120,6 +121,26 @@ const login = async (req, res) => {
         //2. tìm user theo email
         const user = await prisma.user.findUnique({
             where: {email},
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                provider: true,
+                avatar: true,
+                phone: true,
+                address: true,
+                status: true,
+                isVerified: true,
+                password: true,
+                lastLoginAt: true,
+                createdAt: true,
+                userRoles: {
+                    include: {
+                        role: true,
+                    },
+                },
+            },
         });
 
         if (!user) {
@@ -191,9 +212,10 @@ const login = async (req, res) => {
             details: "User logged in successfully",
         });
 
-        // 8. Trả về kết quả
+        const permissionKeys = await getUserPermissionKeys(user.id);
+
         return res.status(200).json({
-            message: "Đăng nhập thành công",
+            message: "Dang nhap thanh cong",
             accessToken,
             refreshToken,
             user: {
@@ -204,6 +226,8 @@ const login = async (req, res) => {
                 provider: user.provider,
                 avatar: user.avatar,
                 isVerified: user.isVerified,
+                permissions: permissionKeys,
+                userRoles: user.userRoles,
             },
         });
     } catch(error) {

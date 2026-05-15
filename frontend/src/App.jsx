@@ -17,6 +17,8 @@ import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminActivityLogsPage from "./pages/AdminActivityLogsPage";
 import AdminFilesPage from "./pages/AdminFilesPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
+import AdminRolesPage from "./pages/AdminRolesPage";
+import PermissionRoute from "./routes/PermissionRoute";
 import {
   User,
   LogOut,
@@ -25,10 +27,11 @@ import {
   Bell,
   FileText,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 
 function Navbar() {
-  const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const { user, logout, isAuthenticated, isAdmin, hasPermission, hasAnyPermission } = useAuth();
   const { settings } = useSettings();
   const location = useLocation();
 
@@ -49,6 +52,16 @@ function Navbar() {
       </Link>
     );
   };
+
+  const canSeeAdminMenu = hasAnyPermission([
+    "dashboard.view",
+    "users.view",
+    "files.view_all",
+    "activity_logs.view",
+    "settings.view",
+    "settings.manage",
+    "roles.view",
+  ]);
 
   return (
     <nav className="border-b border-slate-200 bg-white">
@@ -74,16 +87,18 @@ function Navbar() {
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
-              {navLink("/profile", "Hồ sơ", <User size={16} />)}
-              {navLink("/notifications", "Thông báo", <Bell size={16} />)}
-              {navLink("/files", "Files", <FileText size={16} />)}
-              {isAdmin && navLink("/admin", "Admin", <LayoutDashboard size={16} />)}
-              {isAdmin && (
+              {navLink("/profile", "Ho so", <User size={16} />)}
+              {hasPermission("notifications.view") && navLink("/notifications", "Thong bao", <Bell size={16} />)}
+              {hasPermission("files.view") && navLink("/files", "Files", <FileText size={16} />)}
+              {canSeeAdminMenu && navLink("/admin", "Admin", <LayoutDashboard size={16} />)}
+              {canSeeAdminMenu && (
                 <div className="flex items-center gap-1 border-l border-slate-200 pl-4">
                   <span className="text-xs font-medium uppercase text-slate-400">Admin:</span>
-                  {navLink("/admin/dashboard", "Dashboard", <LayoutDashboard size={14} />)}
-                  {navLink("/admin/files", "Files", <FileText size={14} />)}
-                  {navLink("/admin/settings", "Settings", <Settings size={14} />)}
+                  {hasPermission("dashboard.view") && navLink("/admin/dashboard", "Dashboard", <LayoutDashboard size={14} />)}
+                  {hasPermission("files.view_all") && navLink("/admin/files", "Files", <FileText size={14} />)}
+                  {hasAnyPermission(["settings.view", "settings.manage"]) && navLink("/admin/settings", "Settings", <Settings size={14} />)}
+                  {hasPermission("roles.view") && navLink("/admin/roles", "Roles", <ShieldCheck size={14} />)}
+                  {hasPermission("users.view") && navLink("/admin/users", "Users", <User size={14} />)}
                 </div>
               )}
               <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
@@ -112,13 +127,13 @@ function Navbar() {
                 to="/login"
                 className="rounded-xl px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
               >
-                Đăng nhập
+                Dang nhap
               </Link>
               <Link
                 to="/register"
                 className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
               >
-                Đăng ký
+                Dang ky
               </Link>
             </>
           )}
@@ -146,28 +161,6 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-function AdminRoute({ children }) {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!isAdmin) {
-    return <Navigate to="/profile" replace />;
-  }
-
-  return children;
-}
-
 function AppLayout({ children }) {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -184,7 +177,7 @@ function AppLayout({ children }) {
   useEffect(() => {
     const handleSessionExpired = () => {
       if (!sessionExpiredToastShownRef.current) {
-        toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        toast.warning("Phien dang nhap da het han. Vui long dang nhap lai.");
         sessionExpiredToastShownRef.current = true;
       }
       navigate("/login", { replace: true });
@@ -254,45 +247,44 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/admin/dashboard"
-          element={
-            <AdminRoute>
-              <AdminDashboardPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <AdminRoute>
-              <AdminUsersPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/activity-logs"
-          element={
-            <AdminRoute>
-              <AdminActivityLogsPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/files"
-          element={
-            <AdminRoute>
-              <AdminFilesPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <AdminRoute>
-              <AdminSettingsPage />
-            </AdminRoute>
-          }
-        />
+          element={<ProtectedRoute />}
+        >
+          <Route
+            element={<PermissionRoute permission="dashboard.view" />}
+          >
+            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          </Route>
+
+          <Route
+            element={<PermissionRoute permission="users.view" />}
+          >
+            <Route path="/admin/users" element={<AdminUsersPage />} />
+          </Route>
+
+          <Route
+            element={<PermissionRoute permission="activity_logs.view" />}
+          >
+            <Route path="/admin/activity-logs" element={<AdminActivityLogsPage />} />
+          </Route>
+
+          <Route
+            element={<PermissionRoute permission="files.view_all" />}
+          >
+            <Route path="/admin/files" element={<AdminFilesPage />} />
+          </Route>
+
+          <Route
+            element={<PermissionRoute anyPermissions={["settings.view", "settings.manage"]} />}
+          >
+            <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          </Route>
+
+          <Route
+            element={<PermissionRoute permission="roles.view" />}
+          >
+            <Route path="/admin/roles" element={<AdminRolesPage />} />
+          </Route>
+        </Route>
         <Route
           path="/admin"
           element={<Navigate to="/admin/dashboard" replace />}

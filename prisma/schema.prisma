@@ -32,10 +32,11 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  refreshTokens RefreshToken[]
+  refreshTokens  RefreshToken[]
   uploadedFiles UploadedFile[]
   notifications Notification[]
-  activityLogs ActivityLog[]
+  activityLogs  ActivityLog[]
+  userRoles     UserRole[]
 }
 
 model RefreshToken {
@@ -141,4 +142,52 @@ model SystemSetting {
   footerText      String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model AppRole {
+  id          Int              @id @default(autoincrement())
+  name        String           @unique
+  description String?
+  isSystem    Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          Int              @id @default(autoincrement())
+  key         String           @unique
+  name        String
+  description String?
+  group       String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  rolePermissions RolePermission[]
+}
+
+model UserRole {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  roleId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appRole AppRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           Int      @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime @default(now())
+
+  appRole    AppRole    @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
 }

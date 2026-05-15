@@ -1,30 +1,27 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
+const { getUserPermissionKeys } = require('../services/permission.service');
 
 const isAuthenticated = async (req, res, next) => {
     try {
-        // 1. Lấy token từ header Authorization
         const authHeader = req.headers.authorization;
 
         if(!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
-                message: "Bạn chưa đăng nhập hoặc thiếu token",
+                message: "Ban chua dang nhap hoac thieu token",
             });
         }
 
-        // 2. Tách token ra khỏi chuỗi Bearer
         const token = authHeader.split(' ')[1];
 
         if (!token){
             return res.status(401).json({
-                message: "Token không hợp lệ"
-            })
+                message: "Token khong hop le",
+            });
         }
 
-        // 3. Verify token
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
 
-        // 4. Tìm user trong database
         const user = await prisma.user.findUnique({
             where: {
                 id: decoded.id,
@@ -43,39 +40,48 @@ const isAuthenticated = async (req, res, next) => {
                 lastLoginAt: true,
                 createdAt: true,
                 updatedAt: true,
+                userRoles: {
+                    include: {
+                        role: true,
+                    },
+                },
             },
         });
 
         if(!user) {
             return res.status(401).json({
-                message: "Người dùng không tồn tại",
+                message: "Nguoi dung khong ton tai",
             });
         }
 
         if (user.status === "BLOCKED") {
             return res.status(403).json({
-                message: "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.",
+                message: "Tai khoan cua ban da bi khoa. Vui long lien he quan tri vien.",
             });
         }
 
-        // 5.Gắn user vào request để controller dùng tiếp
-        req.user = user;
+        const permissionKeys = await getUserPermissionKeys(user.id);
+
+        req.user = {
+            ...user,
+            permissions: permissionKeys,
+        };
         next();
     } catch(error) {
         if(error.name === 'TokenExpiredError') {
             return res.status(401).json({
-                message: "Token đã hết hạn",
+                message: "Token da het han",
             });
         }
 
         if(error.name === 'JsonWebTokenError') {
             return res.status(401).json({
-                message: "Token không hợp lệ",
+                message: "Token khong hop le",
             });
         }
 
         return res.status(500).json({
-            message: "Lỗi xác thực token",
+            message: "Loi xac thuc token",
             error: error.message,
         });
     }

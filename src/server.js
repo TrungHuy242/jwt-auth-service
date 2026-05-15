@@ -21,6 +21,7 @@ const activityLogRoutes = require("./routes/activityLog.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const adminSettingRoutes = require("./routes/adminSetting.routes");
 const settingRoutes = require("./routes/setting.routes");
+const adminRoleRoutes = require("./routes/adminRole.routes");
 const { maintenanceGuard } = require("./middlewares/maintenance.middleware");
 
 const app = express();
@@ -78,6 +79,7 @@ app.use("/api/admin/activity-logs", activityLogRoutes);
 app.use("/api/admin/dashboard", dashboardRoutes);
 app.use("/api/admin/settings", adminSettingRoutes);
 app.use("/api/settings", settingRoutes);
+app.use("/api/admin/roles", adminRoleRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -59,13 +59,34 @@ export function AuthProvider({ children }) {
     try {
       await authApi.logout();
     } catch (error) {
-      // ignore logout API errors
     } finally {
       tokenUtils.clearTokens();
       resetSessionExpiredFlag();
       localStorage.removeItem("user");
       setUser(null);
     }
+  };
+
+  const permissions = user?.permissions || [];
+
+  const hasPermission = (permissionKey) => {
+    if (!permissionKey) return false;
+    if (user?.role === "ADMIN") return true;
+    return permissions.includes(permissionKey);
+  };
+
+  const hasAnyPermission = (permissionKeys = []) => {
+    if (user?.role === "ADMIN") return true;
+    return permissionKeys.some((permissionKey) =>
+      permissions.includes(permissionKey)
+    );
+  };
+
+  const hasAllPermissions = (permissionKeys = []) => {
+    if (user?.role === "ADMIN") return true;
+    return permissionKeys.every((permissionKey) =>
+      permissions.includes(permissionKey)
+    );
   };
 
   const value = {
@@ -77,6 +98,10 @@ export function AuthProvider({ children }) {
     loadCurrentUser,
     isAuthenticated: !!user,
     isAdmin: user?.role === "ADMIN",
+    permissions,
+    hasPermission,
+    hasAnyPermission,
+    hasAllPermissions,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

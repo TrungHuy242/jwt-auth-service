@@ -3,11 +3,22 @@ const {
   getActivityLogs,
   getActivityLogById,
 } = require("../controllers/activityLog.controller");
-const { isAuthenticated, allowRoles } = require("../middlewares/auth.middleware");
+const { isAuthenticated } = require("../middlewares/auth.middleware");
+const { requirePermission } = require("../middlewares/permission.middleware");
 
 const router = express.Router();
 
-router.get("/", isAuthenticated, allowRoles("ADMIN"), getActivityLogs);
-router.get("/:id", isAuthenticated, allowRoles("ADMIN"), getActivityLogById);
+router.get(
+  "/",
+  isAuthenticated,
+  requirePermission("activity_logs.view"),
+  getActivityLogs
+);
+router.get(
+  "/:id",
+  isAuthenticated,
+  requirePermission("activity_logs.detail"),
+  getActivityLogById
+);
 
 module.exports = router;

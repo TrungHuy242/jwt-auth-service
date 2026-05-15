@@ -6,20 +6,18 @@ const {
   getSystemStatistics,
   getRecentActivities,
 } = require("../controllers/dashboard.controller");
-const { isAuthenticated, allowRoles } = require("../middlewares/auth.middleware");
+const { isAuthenticated } = require("../middlewares/auth.middleware");
+const { requirePermission } = require("../middlewares/permission.middleware");
 
 const router = express.Router();
 
-router.get("/overview", isAuthenticated, allowRoles("ADMIN"), getDashboardOverview);
-router.get("/users", isAuthenticated, allowRoles("ADMIN"), getUserStatistics);
-router.get("/files", isAuthenticated, allowRoles("ADMIN"), getFileStatistics);
-router.get("/system", isAuthenticated, allowRoles("ADMIN"), getSystemStatistics);
+router.use(isAuthenticated);
+router.use(requirePermission("dashboard.view"));
 
-router.get(
-  "/recent-activities",
-  isAuthenticated,
-  allowRoles("ADMIN"),
-  getRecentActivities
-);
+router.get("/overview", getDashboardOverview);
+router.get("/users", getUserStatistics);
+router.get("/files", getFileStatistics);
+router.get("/system", getSystemStatistics);
+router.get("/recent-activities", getRecentActivities);
 
 module.exports = router;

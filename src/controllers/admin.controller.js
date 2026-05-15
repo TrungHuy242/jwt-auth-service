@@ -90,6 +90,20 @@ const getAllUsers = async (req, res) => {
                     provider: true, avatar: true, phone: true,
                     address: true, status: true, isVerified: true,
                     lastLoginAt: true, createdAt: true, updatedAt: true,
+                    userRoles: {
+                        select: {
+                            id: true,
+                            roleId: true,
+                            role: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    description: true,
+                                    isSystem: true,
+                                },
+                            },
+                        },
+                    },
                 },
             }),
             prisma.user.count({ where }),

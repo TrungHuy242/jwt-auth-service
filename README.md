@@ -203,6 +203,21 @@ jwt-auth-service/
 - Admin xem thông tin người upload
 - Admin xóa file bất kỳ
 
+### 10. Role & Permission Management
+
+- Admin xem danh sách role
+- Admin tạo role mới
+- Admin cập nhật role
+- Admin xóa role custom
+- Admin xem danh sách permission
+- Admin gán permission cho role
+- Admin gán nhiều role cho user (Gán role trong Users page)
+- Frontend ẩn/hiện menu theo permission
+- Backend kiểm tra quyền bằng permission middleware
+- Hỗ trợ role custom như MANAGER, STAFF
+- Admin cũ vẫn hoạt động bình thường (role === "ADMIN" luôn pass)
+- Đồng bộ field role cũ (ADMIN/USER) khi gán role mới cho user
+
 ### Frontend Routes
 
 | Path | Description |
@@ -210,6 +225,7 @@ jwt-auth-service/
 | `/files` | User File Manager |
 | `/admin/files` | Admin File Manager |
 | `/admin/settings` | Admin System Settings |
+| `/admin/roles` | Admin Roles Management |
 
 ---
 
@@ -599,6 +615,19 @@ VITE_API_URL=http://localhost:5000/api
 | GET | `/settings/public` | Lấy cấu hình public |
 | GET | `/admin/settings` | Admin xem cấu hình hệ thống |
 | PATCH | `/admin/settings` | Admin cập nhật cấu hình hệ thống |
+
+### Role Permission API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/admin/roles` | Lấy danh sách role |
+| POST | `/admin/roles` | Tạo role |
+| GET | `/admin/roles/:id` | Xem chi tiết role |
+| PATCH | `/admin/roles/:id` | Cập nhật role |
+| DELETE | `/admin/roles/:id` | Xóa role |
+| GET | `/admin/roles/permissions` | Lấy danh sách permission |
+| PATCH | `/admin/roles/:id/permissions` | Gán permission cho role |
+| PATCH | `/admin/roles/users/:id/roles` | Gán role cho user |
 
 ### Health API
 
@@ -1291,14 +1320,22 @@ Hệ thống có phân quyền theo role:
 
 Các API admin chỉ cho phép user có role `ADMIN` truy cập.
 
-### 7. Account Status Check
+### 7. Permission-based Access Control
+
+Ngoài phân quyền cơ bản USER/ADMIN, hệ thống có cơ chế Role & Permission Management chi tiết. Mỗi user có thể được gán một hoặc nhiều role. Mỗi role có thể được gán nhiều permission. Backend sử dụng middleware `requirePermission` để kiểm tra permission trước khi cho phép truy cập API. Frontend sử dụng danh sách permission của user hiện tại để ẩn hoặc hiển thị menu tương ứng.
+
+Hệ thống kiểm tra permission ở các API: dashboard, users, files, notifications, settings, roles.
+
+Role ADMIN luôn pass mọi permission check. Role custom (như MANAGER, STAFF) chỉ có quyền nếu được gán permission tương ứng.
+
+### 8. Account Status Check
 
 User có status `BLOCKED` sẽ không được đăng nhập.
 
 - `ACTIVE` → được login
 - `BLOCKED` → không được login
 
-### 8. File Upload Validation
+### 9. File Upload Validation
 
 Upload file có kiểm tra:
 
@@ -1309,7 +1346,7 @@ Upload file có kiểm tra:
 
 User thường chỉ được quản lý file của chính mình.
 
-### 9. Activity Log
+### 10. Activity Log
 
 Các hành động quan trọng đều được ghi log để admin truy vết.
 
@@ -1320,7 +1357,7 @@ Ví dụ:
 - Upload file / Delete file
 - Admin đổi role / Khóa / Mở khóa user
 
-### 10. Admin Protection
+### 11. Admin Protection
 
 Backend nên chặn các thao tác nguy hiểm như:
 
@@ -1328,7 +1365,7 @@ Backend nên chặn các thao tác nguy hiểm như:
 - Admin tự hạ role chính mình
 - User thường gọi API admin
 
-### 11. System Settings Enforcement
+### 12. System Settings Enforcement
 
 Backend không chỉ ẩn chức năng ở giao diện mà còn kiểm tra settings ở server:
 
@@ -1566,6 +1603,36 @@ Lưu lịch sử hoạt động quan trọng:
 
 - `id`, `userId`, `action`, `method`, `path`
 - `ip`, `userAgent`, `details`, `createdAt`
+
+### Role
+
+Lưu vai trò tùy chỉnh:
+
+- `id`, `name`, `description`
+- `isSystem` (role mặc định không xóa được)
+- `createdAt`, `updatedAt`
+
+### Permission
+
+Lưu quyền chi tiết:
+
+- `id`, `key` (ví dụ: `dashboard.view`, `users.change_role`)
+- `description`, `groupBy`
+- `createdAt`, `updatedAt`
+
+### UserRole
+
+Liên kết User - Role (nhiều-nhiều):
+
+- `id`, `userId`, `roleId`
+- `createdAt`
+
+### RolePermission
+
+Liên kết Role - Permission (nhiều-nhiều):
+
+- `id`, `roleId`, `permissionId`
+- `createdAt`
 
 ---
 

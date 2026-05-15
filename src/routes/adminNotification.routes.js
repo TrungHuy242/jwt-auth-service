@@ -1,25 +1,24 @@
 const express = require("express");
-
 const {
   sendNotificationToUser,
   broadcastNotification,
 } = require("../controllers/adminNotification.controller");
-
-const { isAuthenticated, allowRoles } = require("../middlewares/auth.middleware");
+const { isAuthenticated } = require("../middlewares/auth.middleware");
+const { requirePermission } = require("../middlewares/permission.middleware");
 
 const router = express.Router();
 
 router.post(
   "/user/:id",
   isAuthenticated,
-  allowRoles("ADMIN"),
+  requirePermission("notifications.send"),
   sendNotificationToUser
 );
 
 router.post(
   "/broadcast",
   isAuthenticated,
-  allowRoles("ADMIN"),
+  requirePermission("notifications.broadcast"),
   broadcastNotification
 );
 
