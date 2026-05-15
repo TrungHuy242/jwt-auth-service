@@ -13,6 +13,39 @@ const {
     passwordLimiter,
   } = require("../middlewares/rateLimit.middleware");
 const passport = require("../config/passport");
+const { getPublicSettings } = require("../services/setting.service");
+
+const checkGoogleLoginEnabled = async (req, res, next) => {
+  try {
+    const settings = await getPublicSettings();
+
+    if (!settings.allowGoogleLogin) {
+      return res.status(403).json({
+        message: "Hệ thống hiện đang tắt đăng nhập bằng Google",
+      });
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+const checkFacebookLoginEnabled = async (req, res, next) => {
+  try {
+    const settings = await getPublicSettings();
+
+    if (!settings.allowFacebookLogin) {
+      return res.status(403).json({
+        message: "Hệ thống hiện đang tắt đăng nhập bằng Facebook",
+      });
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
 const router = express.Router();
 
@@ -23,6 +56,7 @@ router.post("/resend-verification-email", resendVerificationEmail);
 
 router.get(
     "/google",
+    checkGoogleLoginEnabled,
     passport.authenticate("google", {
         scope: ["profile", "email"],
     })
@@ -44,6 +78,7 @@ router.get("/google/failure", (req, res) => {
 
 router.get(
     "/facebook",
+    checkFacebookLoginEnabled,
     passport.authenticate("facebook", {
         scope: ["email"],
     })

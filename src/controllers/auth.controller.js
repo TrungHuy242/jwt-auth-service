@@ -4,6 +4,7 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/token');
 const jwt = require('jsonwebtoken');
 const crypto = require("crypto");
 const { sendEmail } = require("../services/email.service");
+const { getPublicSettings } = require("../services/setting.service");
 const {
   resetPasswordTemplate,
   verifyEmailTemplate,
@@ -18,6 +19,14 @@ const {
 const register = async (req, res) => {
     try{
         const { name, email, password} = req.body;
+
+        const settings = await getPublicSettings();
+
+        if (!settings.allowRegister) {
+            return res.status(403).json({
+                message: "Hệ thống hiện đang tắt chức năng đăng ký tài khoản mới",
+            });
+        }
 
         // 1. kiểm tra dữ liệu đầu vào
         if (!name || !email || !password) {

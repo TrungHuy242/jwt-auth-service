@@ -125,3 +125,20 @@ model ActivityLog {
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
+
+model SystemSetting {
+  id               Int      @id @default(autoincrement())
+  siteName         String   @default("Full-stack Auth Core")
+  siteLogo         String?
+  systemEmail      String?
+  allowRegister    Boolean  @default(true)
+  allowGoogleLogin Boolean  @default(true)
+  allowFacebookLogin Boolean @default(true)
+  maintenanceMode  Boolean  @default(false)
+  maxUploadSizeMB Int      @default(10)
+  defaultUserRole String   @default("USER")
+  supportEmail    String?
+  footerText      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

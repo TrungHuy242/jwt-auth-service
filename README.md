@@ -209,6 +209,7 @@ jwt-auth-service/
 |---|---|
 | `/files` | User File Manager |
 | `/admin/files` | Admin File Manager |
+| `/admin/settings` | Admin System Settings |
 
 ---
 
@@ -590,6 +591,14 @@ VITE_API_URL=http://localhost:5000/api
 | Method | Endpoint | Description |
 |---|---|---|
 | POST | `/emails/test` | Admin gửi email test |
+
+### System Settings API
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/settings/public` | Lấy cấu hình public |
+| GET | `/admin/settings` | Admin xem cấu hình hệ thống |
+| PATCH | `/admin/settings` | Admin cập nhật cấu hình hệ thống |
 
 ### Health API
 
@@ -1319,6 +1328,16 @@ Backend nên chặn các thao tác nguy hiểm như:
 - Admin tự hạ role chính mình
 - User thường gọi API admin
 
+### 11. System Settings Enforcement
+
+Backend không chỉ ẩn chức năng ở giao diện mà còn kiểm tra settings ở server:
+
+- Nếu `allowRegister = false`, API đăng ký sẽ bị chặn (HTTP 403).
+- Nếu `allowGoogleLogin = false`, backend không cho truy cập OAuth Google.
+- Nếu `allowFacebookLogin = false`, backend không cho truy cập OAuth Facebook.
+- Nếu `maintenanceMode = true`, user thường bị chặn truy cập các route `/users`, `/uploads`, `/notifications`.
+- Admin vẫn có thể truy cập đầy đủ kể cả khi Maintenance Mode bật, để có thể tắt chế độ bảo trì.
+
 ---
 
 ## Role and Permission Summary
@@ -1357,6 +1376,10 @@ Admin có toàn bộ quyền của USER, ngoài ra có thể:
 - Xem activity logs
 - Xem dashboard statistics
 - Gửi email test
+- Quản lý cấu hình hệ thống (siteName, logo, email, footer)
+- Bật/tắt đăng ký, Google Login, Facebook Login
+- Bật/tắt Maintenance Mode
+- Cấu hình dung lượng upload và role mặc định
 
 ---
 

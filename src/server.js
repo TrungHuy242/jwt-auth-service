@@ -19,6 +19,9 @@ const notificationRoutes = require("./routes/notification.routes");
 const adminNotificationRoutes = require("./routes/adminNotification.routes");
 const activityLogRoutes = require("./routes/activityLog.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
+const adminSettingRoutes = require("./routes/adminSetting.routes");
+const settingRoutes = require("./routes/setting.routes");
+const { maintenanceGuard } = require("./middlewares/maintenance.middleware");
 
 const app = express();
 
@@ -43,7 +46,7 @@ app.use(
       saveUninitialized: false,
     })
 );
-  
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -66,13 +69,15 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/health", healthRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/uploads", uploadRoutes);
+app.use("/api/users", maintenanceGuard, userRoutes);
+app.use("/api/uploads", maintenanceGuard, uploadRoutes);
 app.use("/api/emails", emailRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/api/notifications", maintenanceGuard, notificationRoutes);
 app.use("/api/admin/notifications", adminNotificationRoutes);
 app.use("/api/admin/activity-logs", activityLogRoutes);
 app.use("/api/admin/dashboard", dashboardRoutes);
+app.use("/api/admin/settings", adminSettingRoutes);
+app.use("/api/settings", settingRoutes);
 
 const PORT = process.env.PORT || 5000;
 
