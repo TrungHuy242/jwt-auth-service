@@ -189,6 +189,27 @@ jwt-auth-service/
 - Admin route
 - Logout
 
+### 9. File Manager Frontend
+
+- User xem danh sách file của mình
+- User upload 1 file
+- User upload nhiều file
+- User tìm kiếm, lọc file theo folder/type
+- User xem chi tiết file
+- User preview ảnh
+- User mở/download file
+- User xóa file bằng Confirm Modal
+- Admin xem toàn bộ file hệ thống
+- Admin xem thông tin người upload
+- Admin xóa file bất kỳ
+
+### Frontend Routes
+
+| Path | Description |
+|---|---|
+| `/files` | User File Manager |
+| `/admin/files` | Admin File Manager |
+
 ---
 
 ## Current Status

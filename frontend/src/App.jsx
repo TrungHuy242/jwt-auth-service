@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Routes, Route, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { useToast } from "./context/ToastContext";
 import { AUTH_EVENTS } from "./utils/authEvents";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
+import FilesPage from "./pages/FilesPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
@@ -13,12 +14,14 @@ import VerifyEmailPage from "./pages/VerifyEmailPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminActivityLogsPage from "./pages/AdminActivityLogsPage";
+import AdminFilesPage from "./pages/AdminFilesPage";
 import {
   User,
   LogOut,
   Shield,
   LayoutDashboard,
   Bell,
+  FileText,
 } from "lucide-react";
 
 function Navbar() {
@@ -58,7 +61,15 @@ function Navbar() {
             <>
               {navLink("/profile", "Hồ sơ", <User size={16} />)}
               {navLink("/notifications", "Thông báo", <Bell size={16} />)}
+              {navLink("/files", "Files", <FileText size={16} />)}
               {isAdmin && navLink("/admin", "Admin", <LayoutDashboard size={16} />)}
+              {isAdmin && (
+                <div className="flex items-center gap-1 border-l border-slate-200 pl-4">
+                  <span className="text-xs font-medium uppercase text-slate-400">Admin:</span>
+                  {navLink("/admin/dashboard", "Dashboard", <LayoutDashboard size={14} />)}
+                  {navLink("/admin/files", "Files", <FileText size={14} />)}
+                </div>
+              )}
               <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
                 {user?.avatar ? (
                   <img
@@ -144,10 +155,21 @@ function AdminRoute({ children }) {
 function AppLayout({ children }) {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const sessionExpiredToastShownRef = useRef(false);
+
+  useEffect(() => {
+    if (user) {
+      sessionExpiredToastShownRef.current = false;
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleSessionExpired = () => {
-      toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+      if (!sessionExpiredToastShownRef.current) {
+        toast.warning("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        sessionExpiredToastShownRef.current = true;
+      }
       navigate("/login", { replace: true });
     };
 
@@ -202,6 +224,14 @@ function AppRoutes() {
           }
         />
         <Route
+          path="/files"
+          element={
+            <ProtectedRoute>
+              <FilesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/admin/dashboard"
           element={
             <AdminRoute>
@@ -222,6 +252,14 @@ function AppRoutes() {
           element={
             <AdminRoute>
               <AdminActivityLogsPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/files"
+          element={
+            <AdminRoute>
+              <AdminFilesPage />
             </AdminRoute>
           }
         />
