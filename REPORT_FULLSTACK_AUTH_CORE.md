@@ -1457,6 +1457,7 @@ Nhóm API Activity Log dùng để admin theo dõi lịch sử hoạt động tr
 |---|---|---|---|
 | GET | `/admin/activity-logs` | Xem danh sách activity log | Admin |
 | GET | `/admin/activity-logs/:id` | Xem chi tiết activity log | Admin |
+| GET | `/admin/activity-logs/export/excel` | Xuất activity logs ra file Excel | Admin |
 
 ### Query params danh sách activity log
 
@@ -2249,6 +2250,10 @@ Authorization: Bearer access_token
 
 **Lưu ý:** Việc bảo vệ route ở Frontend chỉ giúp cải thiện trải nghiệm người dùng. Bảo mật thực sự vẫn phải được kiểm tra ở Backend thông qua middleware xác thực và phân quyền.
 
+**Bảo vệ API export Activity Log**
+
+Chức năng xuất Activity Logs ra file Excel được bảo vệ bằng permission `activity_logs.export`. Người dùng không có quyền này sẽ không thấy nút Export Excel trên giao diện (frontend ẩn nút dựa trên `hasPermission`) và cũng không thể gọi trực tiếp API export (backend trả về HTTP 403 với thông báo yêu cầu permission). API export có giới hạn 5000 bản ghi mỗi lần xuất để tránh file quá nặng.
+
 ## 13.11. Nhận xét về bảo mật hệ thống
 
 Hệ thống đã áp dụng nhiều cơ chế bảo mật quan trọng như hash password, JWT, refresh token, email verification, reset password token, role-based access control, account status check, upload validation và activity log.
@@ -2408,6 +2413,9 @@ Lưu ý: Đây là tài khoản mẫu phục vụ kiểm thử. Khi triển khai
 | 13 | Admin lọc log theo action/method/userId | Trả dữ liệu đúng điều kiện | Đạt |
 | 14 | Admin xem chi tiết log | Trả đầy đủ thông tin log | Đạt |
 | 15 | User thường xem activity log | Trả lỗi không có quyền | Đạt |
+| 16 | Admin xuất activity logs ra Excel | Tải file `.xlsx` chứa dữ liệu logs | Đạt |
+| 17 | Admin xuất logs theo filter | File Excel chỉ chứa dữ liệu theo filter | Đạt |
+| 18 | User thường gọi API export | Trả lỗi không có quyền `activity_logs.export` | Đạt |
 
 ## 14.8. Kiểm thử chức năng Admin Dashboard
 

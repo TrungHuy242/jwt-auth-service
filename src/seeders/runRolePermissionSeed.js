@@ -34,6 +34,7 @@ const DEFAULT_PERMISSIONS = [
 
   { key: "activity_logs.view", name: "Xem activity logs", group: "Activity Logs" },
   { key: "activity_logs.detail", name: "Xem chi tiết activity log", group: "Activity Logs" },
+  { key: "activity_logs.export", name: "Xuat activity logs ra Excel", group: "Activity Logs" },
 
   { key: "settings.view", name: "Xem cấu hình hệ thống", group: "Settings" },
   { key: "settings.manage", name: "Quản lý cấu hình hệ thống", group: "Settings" },

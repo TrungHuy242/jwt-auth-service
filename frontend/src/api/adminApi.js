@@ -32,4 +32,10 @@ export const adminApi = {
 
   getActivityLogById: async (id) =>
     axiosClient.get(`/api/admin/activity-logs/${id}`),
+
+  exportActivityLogsExcel: (params = {}) =>
+    axiosClient.get("/api/admin/activity-logs/export/excel", {
+      params,
+      responseType: "blob",
+    }),
 };

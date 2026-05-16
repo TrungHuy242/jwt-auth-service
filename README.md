@@ -155,6 +155,7 @@ jwt-auth-service/
 - Admin xem danh sách activity log
 - Admin tìm kiếm, lọc, phân trang activity log
 - Admin xem chi tiết activity log
+- Admin xuất activity log ra file Excel (theo filter hiện tại)
 
 ### 7. Admin Dashboard Statistics
 
@@ -592,6 +593,7 @@ VITE_API_URL=http://localhost:5000/api
 |---|---|---|
 | GET | `/admin/activity-logs` | Admin xem danh sách activity log |
 | GET | `/admin/activity-logs/:id` | Admin xem chi tiết activity log |
+| GET | `/admin/activity-logs/export/excel` | Admin xuất activity logs ra Excel theo filter |
 
 ### Admin Dashboard API
 

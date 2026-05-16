@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Activity, Eye, RefreshCcw, Search, X } from "lucide-react";
+import { Activity, Download, Eye, RefreshCcw, Search, X } from "lucide-react";
 import { adminApi } from "../api/adminApi";
 import { TableSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
-import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
+import { useAuth } from "../context/AuthContext";
+import { getErrorMessage } from "../utils/toastMessage";
 
 const actionOptions = [
   "",
@@ -44,7 +45,10 @@ function AdminActivityLogsPage() {
 
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const { hasPermission } = useAuth();
 
   const fetchLogs = async (page = 1) => {
     try {
@@ -82,6 +86,49 @@ function AdminActivityLogsPage() {
       toast.error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const buildLogParams = (page = pagination.page) => {
+    const params = {};
+
+    if (filters.search) params.search = filters.search;
+    if (filters.userId) params.userId = filters.userId;
+    if (filters.action) params.action = filters.action;
+    if (filters.method) params.method = filters.method;
+
+    return params;
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setExportLoading(true);
+      setError("");
+
+      const params = buildLogParams();
+      const blob = await adminApi.exportActivityLogsExcel(params);
+
+      const url = window.URL.createObjectURL(
+        new Blob([blob], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+      );
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `activity-logs-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Export Activity Log Excel thanh cong");
+    } catch (error) {
+      const message = getErrorMessage(error, "Export Activity Log Excel that bai");
+      setError(message);
+      toast.error(message);
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -162,14 +209,28 @@ function AdminActivityLogsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => fetchLogs(pagination.page)}
-          disabled={loading}
-          className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
-        >
-          <RefreshCcw size={16} />
-          {loading ? "Đang tải..." : "Tải lại"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchLogs(pagination.page)}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+          >
+            <RefreshCcw size={16} />
+            {loading ? "Dang tai..." : "Tai lai"}
+          </button>
+
+          {hasPermission("activity_logs.export") && (
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              disabled={exportLoading}
+              className="flex items-center justify-center gap-2 rounded-xl border border-green-300 px-4 py-2 text-sm font-medium text-green-700 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Download size={16} />
+              {exportLoading ? "Dang export..." : "Export Excel"}
+            </button>
+          )}
+        </div>
       </div>
 
       {error && (

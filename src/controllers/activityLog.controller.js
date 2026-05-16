@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { exportActivityLogsToExcel } = require("../services/activityLog.service");
 
 const getActivityLogs = async (req, res) => {
   try {
@@ -179,7 +180,32 @@ const getActivityLogById = async (req, res) => {
   }
 };
 
+const exportActivityLogsExcelController = async (req, res, next) => {
+  try {
+    const buffer = await exportActivityLogsToExcel(req.query);
+
+    const fileName = `activity-logs-${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`;
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${fileName}"`
+    );
+
+    return res.send(buffer);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getActivityLogs,
   getActivityLogById,
+  exportActivityLogsExcelController,
 };
