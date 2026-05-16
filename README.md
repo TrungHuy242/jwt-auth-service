@@ -47,31 +47,44 @@ Mục tiêu của project là xây dựng trước các chức năng nền tản
 
 ## Project Structure
 
-```txt
+```
 jwt-auth-service/
-├── src/                        # Backend source code
-│   ├── api/                    # API documentation
-│   ├── config/                 # Database & app config
-│   ├── controllers/             # Route handlers
-│   ├── middlewares/            # Auth, validation, upload, rate limit
-│   ├── routes/                 # API routes
-│   ├── services/              # Business logic (email, notification, activity log)
-│   ├── templates/             # Email HTML templates
-│   └── utils/                 # Token utilities
+├── src/                          # Backend source code
+│   ├── api/                      # API docs
+│   ├── config/                   # Database & app config
+│   ├── controllers/              # Route handlers
+│   ├── middlewares/              # Auth, validation, upload, rate limit
+│   ├── routes/                  # API routes
+│   ├── services/                # Business logic
+│   ├── templates/               # Email HTML templates
+│   ├── utils/                   # Token utilities
+│   └── server.js                 # Backend entry point
 ├── prisma/
-│   └── schema.prisma           # Database schema
+│   ├── schema.prisma             # Database schema
+│   ├── migrations/               # Database migrations
+│   └── seed.js                   # Role/permission seed
 ├── frontend/
-│   └── src/                   # Frontend source code
-│       ├── api/               # API call functions
-│       ├── context/            # Auth context
-│       ├── pages/             # Page components
-│       └── utils/              # Axios client
-├── uploads/                    # Uploaded files
-├── .env                        # Environment variables
-├── .env.example                # Environment template
-├── docker-compose.yml           # Docker configuration
-├── Dockerfile                  # Docker image
-└── README.md                   # This file
+│   ├── src/                     # Frontend source code
+│   │   ├── api/                 # API call functions
+│   │   ├── components/          # React components
+│   │   ├── context/             # Auth, toast, notification contexts
+│   │   ├── pages/               # Page components
+│   │   ├── routes/              # Route components
+│   │   ├── utils/               # Axios client, helpers
+│   │   └── validations/          # Zod validation schemas
+│   ├── Dockerfile               # Frontend Nginx Docker image
+│   └── nginx.conf               # Nginx configuration
+├── uploads/                      # Uploaded files (gitignored)
+├── .env                          # Backend env (gitignored)
+├── .env.example                  # Backend env template
+├── .env.docker                   # Docker env (gitignored)
+├── .env.docker.example           # Docker env template
+├── docker-compose.yml             # Docker configuration
+├── Dockerfile                     # Backend Docker image
+├── docker-entrypoint.sh          # Backend Docker entrypoint
+├── README.md                      # This file
+└── DEPLOYMENT.md                  # Deployment guide
+```
 
 ---
 
@@ -304,32 +317,31 @@ git clone <frontend-repository-url> frontend
 
 ## Backend Setup
 
-Di chuyển vào thư mục backend (ở root project):
+Install dependencies at project root:
 
 ```bash
 npm install
 ```
 
-Tạo file `.env` từ file mẫu:
+Create `.env` file from template:
 
 ```bash
+# Windows CMD
+copy .env.example .env
+
+# Linux / macOS
 cp .env.example .env
 ```
 
-Trên Windows CMD có thể dùng:
+Update environment variables in `.env`.
 
-```bash
-copy .env.example .env
-```
-
-Cập nhật các biến môi trường trong `.env`.
-
-Ví dụ:
+Example:
 
 ```env
+NODE_ENV=development
 PORT=5000
 
-DATABASE_URL="mysql://root:password@localhost:3306/fullstack_auth_core"
+DATABASE_URL="mysql://root:password@localhost:3306/jwt_auth_service"
 
 JWT_ACCESS_SECRET="your_access_secret"
 JWT_REFRESH_SECRET="your_refresh_secret"
@@ -355,29 +367,26 @@ FACEBOOK_APP_SECRET="your_facebook_app_secret"
 FACEBOOK_CALLBACK_URL="http://localhost:5000/api/auth/facebook/callback"
 ```
 
-Chạy Prisma migrate:
+Run database migrations:
 
 ```bash
-npx prisma migrate dev
+npm run db:migrate
+npm run db:generate
 ```
 
-Generate Prisma Client:
+Seed roles and permissions:
 
 ```bash
-npx prisma generate
+npm run seed:roles
 ```
 
-Chạy backend:
+Start backend:
 
 ```bash
 npm run dev
 ```
 
-Backend sẽ chạy tại:
-
-```txt
-http://localhost:5000
-```
+Backend runs at: `http://localhost:5000`
 
 Health check:
 
@@ -389,75 +398,55 @@ GET http://localhost:5000/api/health
 
 ## Frontend Setup
 
-Mở terminal mới, di chuyển vào thư mục frontend:
+Open a new terminal, navigate to the frontend directory:
 
 ```bash
 cd frontend
 ```
 
-Cài dependencies:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Tạo file `.env` từ file mẫu:
+Create `.env` file from template:
 
 ```bash
+# Windows CMD
+copy .env.example .env
+
+# Linux / macOS
 cp .env.example .env
 ```
 
-Trên Windows CMD có thể dùng:
-
-```bash
-copy .env.example .env
-```
-
-Cập nhật `.env`:
+Update `.env`:
 
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
-Chạy frontend:
+Start frontend:
 
 ```bash
 npm run dev
 ```
 
-Frontend sẽ chạy tại:
-
-```txt
-http://localhost:5173
-```
+Frontend runs at: `http://localhost:5173`
 
 ---
 
 ## Running Order
 
-Nên chạy theo thứ tự:
+Run services in this order:
 
-1. Bật database (MySQL / PostgreSQL)
-2. Chạy backend
-3. Chạy frontend
+1. Start MySQL database
+2. Start backend (`npm run dev` at project root)
+3. Start frontend (`npm run dev` inside `frontend/` folder)
 
-**Backend:**
+Then open your browser:
 
-```bash
-# (đã ở root project)
-npm run dev
 ```
-
-**Frontend:**
-
-```bash
-cd frontend
-npm run dev
-```
-
-Sau đó mở trình duyệt:
-
-```txt
 http://localhost:5173
 ```
 
@@ -1776,3 +1765,26 @@ Prepare reusable full-stack core modules for final year student projects.
 ```
 
 > Bạn có thể đổi `Your Name` thành tên của bạn.
+
+---
+
+## Run with Docker Compose
+
+For full Docker Compose setup instructions (MySQL + Backend + Nginx), see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+Quick start at project root:
+
+```bash
+cp .env.docker.example .env.docker
+cp frontend/.env.docker.example frontend/.env.docker
+docker compose up -d --build
+docker compose exec backend npx prisma db push
+docker compose exec backend npm run seed:roles
+```
+
+Services:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:5001/api`
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for full management commands, troubleshooting, and production notes.

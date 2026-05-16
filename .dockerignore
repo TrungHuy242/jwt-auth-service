@@ -5,3 +5,7 @@ npm-debug.log
 .gitignore
 README.md
 API_DOCUMENTATION.md
+frontend/node_modules
+frontend/dist
+frontend/build
+prisma/migrations
