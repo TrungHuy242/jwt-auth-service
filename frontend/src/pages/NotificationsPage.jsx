@@ -3,6 +3,7 @@ import { Bell, CheckCheck, RefreshCcw } from "lucide-react";
 import { notificationApi } from "../api/notificationApi";
 import { CardListSkeleton } from "../components/ui";
 import { useToast } from "../context/ToastContext";
+import { useNotification } from "../context/NotificationContext";
 import { getErrorMessage, getSuccessMessage } from "../utils/toastMessage";
 
 const notificationTypes = [
@@ -18,6 +19,8 @@ const notificationTypes = [
 
 function NotificationsPage() {
   const { toast } = useToast();
+  const { loadUnreadCount, decreaseUnreadCount, resetUnreadCount } =
+    useNotification();
 
   const [notifications, setNotifications] = useState([]);
   const [pagination, setPagination] = useState({
@@ -70,7 +73,7 @@ function NotificationsPage() {
       setNotifications(response.notifications || []);
       setPagination(response.pagination);
     } catch (error) {
-      const message = getErrorMessage(error, "Không thể tải danh sách thông báo");
+      const message = getErrorMessage(error, "Khong the tai danh sach thong bao");
       setError(message);
       toast.error(message);
     } finally {
@@ -103,13 +106,14 @@ function NotificationsPage() {
 
       const response = await notificationApi.markAsRead(id);
 
-      const message = getSuccessMessage(response, "Đánh dấu thông báo đã đọc");
+      const message = getSuccessMessage(response, "Danh dau thong bao da doc");
       setSuccessMessage(message);
       toast.success(message);
       await fetchNotifications(pagination.page);
       await fetchUnreadCount();
+      decreaseUnreadCount(1);
     } catch (error) {
-      const message = getErrorMessage(error, "Không thể đánh dấu thông báo");
+      const message = getErrorMessage(error, "Khong the danh dau thong bao");
       setError(message);
       toast.error(message);
     } finally {
@@ -125,13 +129,14 @@ function NotificationsPage() {
 
       const response = await notificationApi.markAllAsRead();
 
-      const message = `${getSuccessMessage(response, "Đánh dấu tất cả đã đọc")} (${response.updatedCount || 0})`;
+      const message = `${getSuccessMessage(response, "Danh dau tat ca da doc")} (${response.updatedCount || 0})`;
       setSuccessMessage(message);
       toast.success(message);
       await fetchNotifications(pagination.page);
       await fetchUnreadCount();
+      resetUnreadCount();
     } catch (error) {
-      const message = getErrorMessage(error, "Không thể đánh dấu tất cả thông báo");
+      const message = getErrorMessage(error, "Khong the danh dau tat ca thong bao");
       setError(message);
       toast.error(message);
     } finally {
@@ -169,10 +174,10 @@ function NotificationsPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
             <Bell className="text-blue-600" />
-            Thông báo
+            Thong bao
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Bạn có {unreadCount} thông báo chưa đọc
+            Ban co {unreadCount} thong bao chua doc
           </p>
         </div>
 
@@ -183,7 +188,7 @@ function NotificationsPage() {
             className="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
             <RefreshCcw size={16} />
-            Tải lại
+            Tai lai
           </button>
 
           <button
@@ -192,7 +197,7 @@ function NotificationsPage() {
             className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <CheckCheck size={16} />
-            Đánh dấu tất cả đã đọc
+            Danh dau tat ca da doc
           </button>
         </div>
       </div>
@@ -212,7 +217,7 @@ function NotificationsPage() {
       <div className="mb-6 grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">
-            Trạng thái
+            Trang thai
           </label>
 
           <select
@@ -221,15 +226,15 @@ function NotificationsPage() {
             onChange={handleFilterChange}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
           >
-            <option value="">Tất cả</option>
-            <option value="false">Chưa đọc</option>
-            <option value="true">Đã đọc</option>
+            <option value="">Tat ca</option>
+            <option value="false">Chua doc</option>
+            <option value="true">Da doc</option>
           </select>
         </div>
 
         <div>
           <label className="mb-2 block text-sm font-medium text-slate-700">
-            Loại thông báo
+            Loai thong bao
           </label>
 
           <select
@@ -240,7 +245,7 @@ function NotificationsPage() {
           >
             {notificationTypes.map((type) => (
               <option key={type || "ALL"} value={type}>
-                {type || "Tất cả"}
+                {type || "Tat ca"}
               </option>
             ))}
           </select>
@@ -251,7 +256,7 @@ function NotificationsPage() {
         <CardListSkeleton rows={5} />
       ) : notifications.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-          Không có thông báo nào.
+          Khong co thong bao nao.
         </div>
       ) : (
         <div className="space-y-4">
@@ -281,7 +286,7 @@ function NotificationsPage() {
 
                     {!notification.isRead && (
                       <span className="rounded-full bg-blue-600 px-2 py-1 text-xs font-medium text-white">
-                        Mới
+                        Moi
                       </span>
                     )}
                   </div>
@@ -307,7 +312,7 @@ function NotificationsPage() {
                     disabled={actionLoading}
                     className="rounded-xl border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
                   >
-                    Đánh dấu đã đọc
+                    Danh dau da doc
                   </button>
                 )}
               </div>
@@ -318,8 +323,8 @@ function NotificationsPage() {
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-500">
-          Trang {pagination.page} / {pagination.totalPages || 1} - Tổng{" "}
-          {pagination.totalNotifications || 0} thông báo
+          Trang {pagination.page} / {pagination.totalPages || 1} - Tong{" "}
+          {pagination.totalNotifications || 0} thong bao
         </p>
 
         <div className="flex gap-2">
@@ -328,7 +333,7 @@ function NotificationsPage() {
             onClick={() => fetchNotifications(pagination.page - 1)}
             className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Trước
+            Truoc
           </button>
 
           <button

@@ -182,6 +182,7 @@ jwt-auth-service/
 - Upload avatar
 - Delete avatar
 - Notifications page
+- Notification dropdown (bell icon, badge, 5 latest notifications)
 - Admin dashboard
 - Admin users management
 - Admin activity logs

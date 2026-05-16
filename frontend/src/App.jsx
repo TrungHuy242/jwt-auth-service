@@ -19,6 +19,7 @@ import AdminFilesPage from "./pages/AdminFilesPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
 import AdminRolesPage from "./pages/AdminRolesPage";
 import PermissionRoute from "./routes/PermissionRoute";
+import NotificationDropdown from "./components/NotificationDropdown";
 import {
   User,
   LogOut,
@@ -102,6 +103,7 @@ function Navbar() {
                 </div>
               )}
               <div className="flex items-center gap-3 border-l border-slate-200 pl-4">
+                <NotificationDropdown />
                 {user?.avatar ? (
                   <img
                     src={user.avatar}

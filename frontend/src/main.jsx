@@ -5,6 +5,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { ConfirmProvider } from "./context/ConfirmContext";
 import { SettingsProvider } from "./context/SettingsContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import ToastContainer from "./components/ui/ToastContainer";
 import ConfirmModal from "./components/ui/ConfirmModal";
 import "./index.css";
@@ -17,9 +18,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <ConfirmProvider>
           <SettingsProvider>
             <AuthProvider>
-              <App />
-              <ToastContainer />
-              <ConfirmModal />
+              <NotificationProvider>
+                <App />
+                <ToastContainer />
+                <ConfirmModal />
+              </NotificationProvider>
             </AuthProvider>
           </SettingsProvider>
         </ConfirmProvider>
